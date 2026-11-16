@@ -5,10 +5,13 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -25,32 +28,35 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # ubuntu-latest already has Android SDK + cmdline-tools.
+      # Accept licenses so Gradle can download platforms/build-tools as needed.
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" || true
 
       - name: npm install
         run: npm install
 
       - name: Add Android platform
-        run: npx cap add android
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          else
+            echo "android/ already exists, skipping cap add"
+          fi
 
-      # permissions, notification channel, google-services.json, launcher icons
       - name: Patch Android project
         run: npm run android:patch
 
       - name: Sync web files into Android
         run: npx cap sync android
 
-      # (npx cap open android is skipped: it opens Android Studio, which CI does not have)
-
-      - name: Cache Gradle
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Build debug APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
