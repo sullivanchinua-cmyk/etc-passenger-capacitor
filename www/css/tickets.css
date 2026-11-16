@@ -1,0 +1,143 @@
+/* Ticket, receipt, notifications, events – light app theme with a dark boarding-pass */
+.tk-tabs { display: flex; gap: 4px; padding: 4px; margin: 18px auto 14px; width: fit-content; border-radius: 999px; background: #E3E4E6; border: 1px solid rgba(255,255,255,.6); }
+.tk-tabs button { height: 38px; padding: 0 22px; border: 0; border-radius: 999px; background: transparent; font: 700 13.5px var(--font); color: var(--mute); transition: background .2s, color .2s; }
+.tk-tabs button.on { background: var(--ink); color: #fff; box-shadow: 0 6px 14px rgba(17,17,18,.25); }
+.tk-empty { text-align: center; padding: 60px 20px; color: var(--mute); font-size: 14px; }
+.tk-empty h3 { color: var(--ink); font-size: 18px; font-weight: 800; margin: 0 0 6px; }
+
+.tk-pager { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -20px; padding: 4px 20px 10px; gap: 14px; overscroll-behavior-x: contain; }
+.tk-pager::-webkit-scrollbar { display: none; }
+.tk-card { flex: 0 0 100%; scroll-snap-align: center; border-radius: 30px; background: #F6F7F9; border: 1px solid rgba(255,255,255,.8); box-shadow: 0 18px 40px rgba(17,17,18,.14); overflow: hidden; position: relative; }
+.tk-head { padding: 18px 20px 20px; color: #fff; background: radial-gradient(120% 140% at 0% 0%, #26365F 0%, #111B33 55%, #0B1224 100%); }
+.tk-brand { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,.72); margin-bottom: 14px; }
+.tk-logo { font-weight: 800; letter-spacing: .12em; padding: 4px 9px; border-radius: 8px; background: #fff; color: #0B1224; font-size: 11.5px; }
+.tk-tag { margin-left: auto; font-style: normal; font-size: 10.5px; padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1); }
+.tk-route { display: flex; align-items: center; gap: 10px; }
+.tk-route > div { flex: 1; min-width: 0; } .tk-route > div:last-child { text-align: right; }
+.tk-route small { display: block; font-size: 11px; color: rgba(255,255,255,.55); font-weight: 600; }
+.tk-route b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; margin-top: 2px; }
+.tk-arrow svg { width: 22px; height: 22px; fill: none; stroke: #4ADE80; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.tk-notch { position: relative; height: 22px; margin-top: -1px; display: flex; align-items: center; }
+.tk-notch i { width: 22px; height: 22px; border-radius: 50%; background: var(--bg, #D3D4D7); flex-shrink: 0; margin: 0 -11px; position: relative; z-index: 1; }
+.tk-notch span { flex: 1; border-top: 2px dashed #CBCDD2; margin: 0 16px; }
+.tk-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; padding: 6px 22px 6px; }
+.tk-meta small { display: block; font-size: 11.5px; color: var(--mute); font-weight: 600; }
+.tk-meta b { display: block; font-size: 14.5px; font-weight: 800; letter-spacing: -.01em; margin-top: 2px; overflow-wrap: anywhere; }
+.tk-qrwrap { padding: 16px 22px 8px; text-align: center; }
+.tk-qr { position: relative; width: 246px; height: 246px; margin: 0 auto; padding: 18px; border-radius: 26px; background: #fff; box-shadow: inset 0 0 0 1px #E6E7EB, 0 10px 26px rgba(17,17,18,.1); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.tk-qr canvas, .tk-qr img { display: block; }
+.qr-fallback { font: 700 11px monospace; color: #111; word-break: break-all; text-align: center; }
+.tk-scan { position: absolute; left: 0; right: 0; height: 46px; top: -46px; background: linear-gradient(180deg, transparent, rgba(22,169,106,.28), transparent); border-bottom: 2px solid rgba(22,169,106,.55); animation: tkscan 2.6s linear infinite; pointer-events: none; }
+@keyframes tkscan { to { transform: translateY(300px); } }
+.tk-live { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; font-size: 12.5px; font-weight: 700; }
+.tk-live .dot { width: 9px; height: 9px; border-radius: 50%; background: #16A96A; animation: tkpulse 1.2s ease-in-out infinite; }
+@keyframes tkpulse { 50% { transform: scale(1.5); opacity: .45; } }
+.tk-live .live-clock { font-variant-numeric: tabular-nums; letter-spacing: .04em; font-size: 15px; }
+.tk-live .live-sec { color: var(--mute); font-variant-numeric: tabular-nums; }
+.tk-bar { height: 5px; border-radius: 99px; background: #E1E2E6; margin: 10px auto 0; width: 200px; overflow: hidden; }
+.tk-bar i { display: block; height: 100%; width: 100%; background: #16A96A; border-radius: 99px; transition: width 1s linear, background .3s; }
+.tk-bar i.low { background: #E11D48; }
+.tk-note { margin: 12px 4px 0; font-size: 12px; line-height: 1.5; color: var(--mute); font-weight: 500; text-align: center; }
+.tk-actions { display: flex; gap: 10px; padding: 14px 18px 20px; }
+.tk-actions-final { padding: 4px 2px 10px; }
+.tk-btn { flex: 1; height: 50px; border-radius: 999px; border: 0; background: var(--ink); color: #fff; font: 700 14px var(--font); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+.tk-btn.ghost { background: #E6E7EB; color: var(--ink); }
+.tk-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.tk-btn:active { transform: scale(.97); }
+.tk-dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; }
+.tk-dots i { width: 7px; height: 7px; border-radius: 99px; background: #C4C6CB; transition: width .25s, background .25s; }
+.tk-dots i.on { width: 20px; background: var(--ink); }
+
+/* receipt */
+.rc-card { border-radius: 30px; background: #F6F7F9; border: 1px solid rgba(255,255,255,.8); box-shadow: 0 18px 40px rgba(17,17,18,.12); padding: 22px 20px 20px; }
+.rc-top { text-align: center; padding-bottom: 16px; border-bottom: 2px dashed #D5D7DC; margin-bottom: 8px; }
+.rc-check { width: 54px; height: 54px; border-radius: 50%; background: #16A96A; display: inline-flex; align-items: center; justify-content: center; }
+.rc-check svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.rc-top h2 { margin: 10px 0 2px; font-size: 18px; font-weight: 800; } .rc-top p { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.03em; }
+.rc-h { margin: 16px 2px 2px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.rc-rows > div { display: flex; justify-content: space-between; gap: 14px; padding: 10px 2px; font-size: 13.5px; border-bottom: 1px solid #E5E6EA; }
+.rc-rows > div:last-child { border: 0; } .rc-rows span { color: var(--mute); font-weight: 500; } .rc-rows b { font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+.rc-rows .mono, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.rc-total { font-size: 15px !important; } .rc-total b, .rc-total span { color: var(--ink) !important; font-weight: 800 !important; }
+
+/* notifications + events lists */
+.nt { display: flex; align-items: center; gap: 13px; width: 100%; padding: 13px 14px; margin-bottom: 10px; border-radius: 26px; background: #ECECEE; border: 1px solid rgba(255,255,255,.7); text-align: left; text-decoration: none; color: var(--ink); position: relative; font-family: var(--font); cursor: pointer; }
+.nt:active { transform: scale(.985); }
+.nt .ic { width: 44px; height: 44px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nt .ic svg { width: 21px; height: 21px; fill: none; stroke: #000; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.nt .tx { flex: 1; min-width: 0; }
+.nt .tx b { display: block; font-size: 14.5px; font-weight: 800; letter-spacing: -.01em; }
+.nt .tx span { display: block; font-size: 12.5px; color: #55575C; margin-top: 2px; font-weight: 500; }
+.nt .tx small { display: block; font-size: 11.5px; color: var(--mute); margin-top: 4px; font-weight: 600; }
+.nt .thumb { width: 78px; height: 78px; border-radius: 16px; background: #fff; padding: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px #E3E4E8; }
+.nt .thumb canvas, .nt .thumb img { width: 66px !important; height: 66px !important; display: block; }
+.nt .thumb .qr-fallback { font-size: 6px; }
+.nt.unread::after { content: ""; position: absolute; top: 12px; right: 14px; width: 9px; height: 9px; border-radius: 50%; background: #E11D48; }
+.nt.unread { background: #fff; box-shadow: 0 8px 22px rgba(17,17,18,.08); }
+.ev-h { margin: 22px 4px 10px; font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--mute); }
+.ev-count { display: inline-block; margin-left: 6px; min-width: 20px; padding: 1px 7px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 11px; text-align: center; letter-spacing: 0; }
+.nt.past { opacity: .62; }
+.nt-empty { text-align: center; padding: 46px 24px; border-radius: 28px; background: #E3E4E6; border: 1px solid rgba(255,255,255,.5); }
+.nt-empty h3 { margin: 12px 0 4px; font-size: 18px; font-weight: 800; } .nt-empty p { margin: 0; font-size: 13.5px; color: var(--mute); }
+.nt-empty svg { width: 40px; height: 40px; fill: none; stroke: #000; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nt .thumb svg { width: 34px; height: 34px; fill: none; stroke: #9A9CA1; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nt .thumb { overflow: hidden; }
+
+
+.tk-qr { position: relative; }
+
+.tk-card { position: relative; }
+
+.rc-pax span { display: flex; flex-direction: column; gap: 2px; }
+.rc-pax em.mono { font-size: 11px; color: #64748b; font-style: normal; font-weight: 600; }
+
+/* USED stamp — reference style */
+.tk-qrwrap { position: relative; text-align: center; }
+.tk-qr { position: relative; display: inline-block; line-height: 0; }
+.tk-used-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-22deg);
+  z-index: 30;
+  pointer-events: none;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  line-height: 1;
+  color: #CC0000;
+  border: 4px solid #CC0000;
+  border-radius: 8px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.88);
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+}
+.tk-card.is-used .tk-live,
+.tk-card.used .tk-live { visibility: hidden; height: 0; margin: 0; overflow: hidden; }
+.tk-card.is-used .tk-bar,
+.tk-card.used .tk-bar { display: none; }
+
+.tk-qrbox {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+.tk-qrbox .tk-used-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-22deg);
+  z-index: 30;
+  pointer-events: none;
+}
+
+
+/* USED stamp solid red */
+.tk-used-stamp,
+.tk-qrbox .tk-used-stamp {
+  color: #CC0000 !important;
+  border-color: #CC0000 !important;
+}

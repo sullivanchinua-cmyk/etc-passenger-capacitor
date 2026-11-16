@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>ETC – Your ticket</title>
+  <link rel="stylesheet" href="css/tailwind.css" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)">
+  <link rel="stylesheet" href="vendor/fonts/plus-jakarta-sans.css" onerror="this.onerror=null;this.href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'">
+  <script>
+    window.tailwind=window.tailwind||{};tailwind.config = { theme: { extend: {
+      colors: { soft: { 100: '#DCDDE0', 200: '#D2D3D6', 300: '#E3E4E6' }, ink: '#111112', mute: '#8A8C90', navy: '#0B0F3A' }
+    } } }
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/tickets.css" />
+
+
+<style id="etc-anti-zoom-select">
+html,body{touch-action:manipulation;overscroll-behavior-y:auto;-webkit-text-size-adjust:100%}
+/* allow vertical scroll everywhere */
+#chatMessages,.chat-messages,[data-chat-msgs],.msgs,main,.page,body,html{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:auto;
+}
+html,body,*{-webkit-user-select:none!important;-moz-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+input,textarea,[contenteditable="true"],.selectable,.ref-id,[data-selectable],#refId,.ticket-ref,.reference-id,[class*="ref-id"],[class*="reference"]{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
+</style>
+<script>
+(function(){
+  // Block pinch zoom only — do NOT block single-finger scroll
+  document.addEventListener('gesturestart',function(e){e.preventDefault()},{passive:false});
+  document.addEventListener('gesturechange',function(e){e.preventDefault()},{passive:false});
+  document.addEventListener('touchmove',function(e){
+    if (e.touches && e.touches.length > 1) e.preventDefault();
+  },{passive:false});
+  // Do not preventDefault on touchend — that breaks scroll
+})();
+</script>
+
+</head>
+<body class="min-h-screen text-ink">
+  <button id="backBtn" class="back-btn" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+  <div class="max-w-[430px] mx-auto px-5 pt-4 pb-16">
+    <div class="flex items-center justify-between">
+      <span class="w-11 h-11" aria-hidden="true"></span>
+      <h1 class="page-title text-lg text-ink">Your ticket</h1>
+      <div class="w-11"></div>
+    </div>
+
+    <div class="tk-tabs" role="tablist" id="tabs" hidden>
+      <button role="tab" class="on" data-tab="ticket" aria-selected="true">Ticket</button>
+      <button role="tab" data-tab="receipt" aria-selected="false">Receipt</button>
+    </div>
+
+    <div id="view"><p class="tk-empty">Loading your ticket…</p></div>
+  </div>
+
+      <script>
+    (function () {
+      function unlock() {
+        try {
+          document.body && (document.body.style.overflow = "");
+          document.documentElement && (document.documentElement.style.overflow = "");
+          document.documentElement && document.documentElement.classList.remove("map-open");
+          document.querySelectorAll(".ov.show:not(.cal-ov):not(.profile-ov), .rate-ov, .pay-root.show, [data-etc-ghost-shield], .lock-ov").forEach(function (n) {
+            try { n.classList.remove("show"); n.remove(); } catch (_) {}
+          });
+          document.querySelectorAll(".cal-ov").forEach(function (n) {
+            try { n.classList.remove("show"); n.setAttribute("aria-hidden", "true"); } catch (_) {}
+          });
+          document.querySelectorAll(".profile-ov").forEach(function (n) {
+            try { n.classList.remove("show", "locked"); n.style.pointerEvents = ""; n.setAttribute("aria-hidden", "true"); } catch (_) {}
+          });
+        } catch (_) {}
+      }
+      unlock();
+      document.addEventListener("DOMContentLoaded", unlock);
+      window.addEventListener("pageshow", unlock);
+      // Extra safety after slow scripts
+      setTimeout(unlock, 400);
+      setTimeout(unlock, 1500);
+    })();
+  </script>
+  <script src="js/firebase-config.js"></script>
+  <script src="vendor/v10/firebase-app-compat.js"></script>
+  <script>window.firebase||document.write('<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"><\/script>')</script>
+  <script src="vendor/v10/firebase-auth-compat.js"></script>
+  <script>window.firebase&&firebase.auth||document.write('<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"><\/script>')</script>
+  <script src="vendor/v10/firebase-firestore-compat.js"></script>
+  <script>window.firebase&&firebase.firestore||document.write('<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"><\/script>')</script>
+  <script src="js/firebase-init.js"></script>
+  <script src="native/loader.js"></script>
+<script src="js/data.js"></script>
+<script src="js/fares-live.js"></script>
+  <script src="js/chat-bridge.js"></script>
+  <script src="js/occupancy.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/lib.js"></script>
+  <script src="js/tokens.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/tickets.js"></script>
+  <script src="js/qrlive.js"></script>
+  <script src="js/ticket.js"></script>
+</body>
+</html>

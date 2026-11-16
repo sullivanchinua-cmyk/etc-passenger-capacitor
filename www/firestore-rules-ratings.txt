@@ -1,0 +1,26 @@
+// OPTIONAL + UNTESTED – merge into your existing Firestore rules (do NOT replace the whole file:
+// the agent and dashboard apps share this Firebase project). Try it in Firebase Console > Rules Playground first.
+// Goal: nobody can fake the totals – the route total may only change by exactly the caller's own vote.
+
+match /route_ratings/{routeId} {
+  allow read: if true;
+  allow delete: if false;
+  allow create, update: if request.auth != null
+    && request.resource.data.sum   == totalSum(resource)   + newStars(routeId) - oldStars(routeId)
+    && request.resource.data.count == totalCount(resource) + (newStars(routeId) > 0 ? 1 : 0) - (oldStars(routeId) > 0 ? 1 : 0);
+
+  match /votes/{uid} {
+    allow read: if request.auth != null && request.auth.uid == uid;
+    allow create, update: if request.auth != null && request.auth.uid == uid
+      && request.resource.data.stars is int
+      && request.resource.data.stars >= 1 && request.resource.data.stars <= 5;
+    allow delete: if request.auth != null && request.auth.uid == uid;
+  }
+}
+
+// helper functions go inside `match /databases/{database}/documents { ... }`
+function votePath(routeId) { return /databases/$(database)/documents/route_ratings/$(routeId)/votes/$(request.auth.uid); }
+function oldStars(routeId)  { return exists(votePath(routeId))      ? get(votePath(routeId)).data.stars      : 0; }
+function newStars(routeId)  { return existsAfter(votePath(routeId)) ? getAfter(votePath(routeId)).data.stars : 0; }
+function totalSum(r)   { return r == null ? 0 : r.data.sum; }
+function totalCount(r) { return r == null ? 0 : r.data.count; }

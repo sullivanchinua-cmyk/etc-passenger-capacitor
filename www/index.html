@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>ETC – Home | Enugu Transit Control</title>
+  <meta name="description" content="Book seats on modern electric buses across Enugu. Smart, safe, affordable transit by Enugu State Government & Enugu Smart Bus Service." />
+  <meta name="theme-color" content="#0B0F3A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ETC Bus" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <!-- ETC intro v4: pure animation (no video file). Sync script in <head> so it covers the app from the very first frame.
+       data-once="true" = plays on the very first launch only and never again once the person reaches Home (add ?intro to replay while testing; ?nologo = without the logo reveal). -->
+  <script src="js/etc-intro.js" data-bus="assets/bus.png" data-once="true" data-logo="assets/intro" data-sound="assets/intro/intro-sound.m4a"
+          data-home="#etcApp, .hdr-right, .etc-nav, #dockBand" data-reveal="[data-etc-reveal]"></script>
+  <link rel="stylesheet" href="css/tailwind.css" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)">
+  <link rel="stylesheet" href="vendor/fonts/plus-jakarta-sans.css" onerror="this.onerror=null;this.href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'">
+  <script>
+    window.tailwind=window.tailwind||{};tailwind.config = { theme: { extend: {
+      colors: { soft: { 100: '#DCDDE0', 200: '#D2D3D6', 300: '#E3E4E6' }, ink: '#111112', mute: '#8A8C90', navy: '#0B0F3A' }
+    } } }
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script>
+    var _etcNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+    if ("serviceWorker" in navigator && !_etcNative) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).then(function (reg) {
+          console.log("[ETC] SW registered", reg.scope);
+          if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        }).catch(function (e) { console.warn("[ETC] SW register failed", e); });
+      });
+    }
+  </script>
+
+
+<style id="etc-anti-zoom-select">
+html,body{touch-action:manipulation;overscroll-behavior-y:auto;-webkit-text-size-adjust:100%}
+/* allow vertical scroll everywhere */
+#chatMessages,.chat-messages,[data-chat-msgs],.msgs,main,.page,body,html{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:auto;
+}
+html,body,*{-webkit-user-select:none!important;-moz-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+input,textarea,[contenteditable="true"],.selectable,.ref-id,[data-selectable],#refId,.ticket-ref,.reference-id,[class*="ref-id"],[class*="reference"]{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
+</style>
+<script>
+(function(){
+  // Block pinch zoom only — do NOT block single-finger scroll
+  document.addEventListener('gesturestart',function(e){e.preventDefault()},{passive:false});
+  document.addEventListener('gesturechange',function(e){e.preventDefault()},{passive:false});
+  document.addEventListener('touchmove',function(e){
+    if (e.touches && e.touches.length > 1) e.preventDefault();
+  },{passive:false});
+  // Do not preventDefault on touchend — that breaks scroll
+})();
+</script>
+
+</head>
+<body class="min-h-screen text-ink home-lite">
+
+  <!-- frosted strip that fades in behind the docked search + chips -->
+  <div id="dockBand" class="dock-band" aria-hidden="true"></div>
+
+  <!-- fixed top-right: search shortcut + profile (profile never moves) -->
+  <div class="hdr-right" data-etc-reveal>
+    <button id="hdrSearch" type="button" class="frost w-11 h-11 rounded-full flex items-center justify-center -mr-2 z-10" aria-label="Notifications">
+      <svg class="ico" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="bellDot" class="bell-dot" aria-hidden="true"></span>
+    </button>
+    <button id="profileBtn" type="button" class="relative z-20 p-0 border-0 bg-transparent rounded-full" aria-label="Profile">
+      <img id="hdrAvatar" src="https://i.pravatar.cc/88?img=12" alt="Profile" class="w-11 h-11 rounded-full object-cover border-2 border-white/70 block" />
+    </button>
+  </div>
+
+  <div id="etcApp" class="max-w-[430px] mx-auto pb-28">
+
+    <!-- HEADER (logo) -->
+    <header class="hdr" data-etc-reveal>
+      <button id="logoBtn" class="frost w-11 h-11 rounded-full flex items-center justify-center" aria-label="Logo">
+        <span class="font-extrabold text-lg text-mute leading-none" style="font-style:italic;">F</span>
+      </button>
+    </header>
+
+    <!-- GREETING -->
+    <div id="greeting" class="px-5 pt-3" data-etc-reveal>
+      <p class="text-[15px] font-normal text-ink mb-1">Hi, Welcome</p>
+      <h1 class="title">Enugu Bus Trip</h1>
+    </div>
+
+    <!-- SEARCH ROW – shrinks into a circle and docks at the top on scroll -->
+    <div id="dockSentinel" style="height:0"></div>
+    <div id="sRow" class="s-row" data-etc-reveal>
+      <a id="searchPill" href="search.html" class="search-pill" aria-label="Search routes">
+        <!-- 3 solid shapes that only ever move with transform: left circle (fixed), middle bar (scaleX), right circle (translateX) -->
+        <span class="sp-mid" aria-hidden="true"></span>
+        <span class="sp-cap" aria-hidden="true"></span>
+        <span class="sp-capr" aria-hidden="true"><i></i></span>
+        <svg class="ico" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </a>
+      <button id="filterBtn" class="frost w-12 h-12 rounded-full flex items-center justify-center shrink-0" aria-label="Filter">
+        <svg class="ico" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" ><path d="M4 6h16M8 12h8M10 18h4"/></svg>
+      </button>
+    </div>
+
+    <!-- CHIPS – stick under the docked search -->
+    <div id="chips" class="chips" data-etc-reveal>
+      <button class="flex items-center gap-2 bg-ink text-white rounded-full pl-1.5 pr-4 py-1.5 shrink-0">
+        <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-ink">
+          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="4" y="3" width="16" height="16.5" rx="3.4"/><rect x="1.7" y="7.2" width="2" height="4.6" rx="1"/><rect x="20.3" y="7.2" width="2" height="4.6" rx="1"/><rect x="6" y="18" width="3.4" height="3.8" rx="1.3"/><rect x="14.6" y="18" width="3.4" height="3.8" rx="1.3"/></g><g fill="#fff"><rect x="6.4" y="5.5" width="11.2" height="6.4" rx="1.5"/><circle cx="8.4" cy="15.4" r="1.4"/><circle cx="15.6" cy="15.4" r="1.4"/></g></svg>
+        </span>
+        <span class="text-sm font-semibold">Bus Travel</span>
+      </button>
+      <button id="calBtn" class="frost w-12 h-12 rounded-full flex items-center justify-center shrink-0" type="button" aria-label="Calendar">
+        <svg class="ico" width="21" height="21" viewBox="0 0 24 24" aria-hidden="true" ><rect x="3" y="4.5" width="18" height="17" rx="3.5"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><circle class="dot" cx="8" cy="14.2" r="1.15"/><circle class="dot" cx="12" cy="14.2" r="1.15"/><circle class="dot" cx="16" cy="14.2" r="1.15"/><circle class="dot" cx="8" cy="18" r="1.15"/><circle class="dot" cx="12" cy="18" r="1.15"/><circle class="dot" cx="16" cy="18" r="1.15"/></svg>
+      </button>
+      <a id="botBtn" href="ai.html" class="frost w-12 h-12 rounded-full flex items-center justify-center shrink-0" aria-label="ETC Assistant">
+        <svg class="ico bot-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+          <g class="bot-face">
+            <path d="M12 3.2v3.1"/><circle class="dot" cx="12" cy="2.8" r="1.1"/>
+            <rect x="4" y="6.8" width="16" height="12.6" rx="4.6"/>
+            <path d="M2 12.4v2.6M22 12.4v2.6"/>
+            <circle class="dot bot-eye" cx="9" cy="12.2" r="1.3"/><circle class="dot bot-eye" cx="15" cy="12.2" r="1.3"/>
+            <path d="M9.2 15.6c1.7 1.4 4 1.4 5.6 0"/>
+          </g>
+          <g class="bot-spark">
+            <path class="dot" d="M11 5.5c.7 4.6 3 6.9 7.6 7.5-4.6.6-6.9 2.9-7.6 7.5-.7-4.6-3-6.9-7.6-7.5 4.6-.6 6.9-2.9 7.6-7.5z"/>
+            <path class="dot" d="M19 2c.3 1.8 1.1 2.6 2.9 2.9-1.8.3-2.6 1.1-2.9 2.9-.3-1.8-1.1-2.6-2.9-2.9 1.8-.3 2.6-1.1 2.9-2.9z"/>
+            <path class="dot" d="M18.5 17c.25 1.5.9 2.15 2.4 2.4-1.5.25-2.15.9-2.4 2.4-.25-1.5-.9-2.15-2.4-2.4 1.5-.25 2.15-.9 2.4-2.4z"/>
+          </g>
+        </svg>
+      </a>
+      <a id="chatBtn" href="chat/index.html" class="frost w-12 h-12 rounded-full flex items-center justify-center shrink-0" aria-label="Chat">
+        <svg class="ico" width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle class="dot" cx="8.5" cy="10" r="1.1"/><circle class="dot" cx="12.5" cy="10" r="1.1"/><circle class="dot" cx="16.5" cy="10" r="1.1"/></svg>
+      </a>
+    </div>
+
+    <div class="terminal-block mb-5" data-etc-reveal data-terminal="holy-ghost">
+      <div class="swipe-row">
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Holy Ghost" data-to="Emene" data-fare="500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="3">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-1-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-2-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-3-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <div class="slide-dots absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Holy Ghost → Emene</p>
+              <p class="text-sm font-semibold mt-0.5">₦500 <span class="text-mute font-medium">· 7 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Holy Ghost" data-to="Gariki" data-fare="500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="3">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-1-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-2-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-3-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <div class="slide-dots absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Holy Ghost → Gariki</p>
+              <p class="text-sm font-semibold mt-0.5">₦500 <span class="text-mute font-medium">· 7 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Holy Ghost" data-to="Abakpa" data-fare="500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="3">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-1-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-2-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-3-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <div class="slide-dots absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Holy Ghost → Abakpa</p>
+              <p class="text-sm font-semibold mt-0.5">₦500 <span class="text-mute font-medium">· 7 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Holy Ghost" data-to="Ninth Mile" data-fare="500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="3">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-1-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-2-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-3-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <div class="slide-dots absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Holy Ghost → Ninth Mile</p>
+              <p class="text-sm font-semibold mt-0.5">₦500 <span class="text-mute font-medium">· 7 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Holy Ghost" data-to="Agbani" data-fare="900">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="3">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-1-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-2-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-3-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <div class="slide-dots absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Holy Ghost → Agbani</p>
+              <p class="text-sm font-semibold mt-0.5">₦900 <span class="text-mute font-medium">· 7 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Holy Ghost" data-to="Udi / Oji" data-fare="1200">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="3">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-1-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-2-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-3-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <div class="slide-dots absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Holy Ghost → Udi / Oji</p>
+              <p class="text-sm font-semibold mt-0.5">₦1,200 <span class="text-mute font-medium">· 7 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Holy Ghost" data-to="Nsukka" data-fare="1500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="3">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-1-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-2-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/holy-ghost-3-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <div class="slide-dots absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Holy Ghost → Nsukka</p>
+              <p class="text-sm font-semibold mt-0.5">₦1,500 <span class="text-mute font-medium">· 7 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="terminal-block mb-5" data-etc-reveal data-terminal="gariki">
+      <div class="swipe-row">
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Gariki" data-to="Holy Ghost" data-fare="500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/gariki-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_20%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Gariki → Holy Ghost</p>
+              <p class="text-sm font-semibold mt-0.5">₦500 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Gariki" data-to="Agbani" data-fare="500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/gariki-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_20%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Gariki → Agbani</p>
+              <p class="text-sm font-semibold mt-0.5">₦500 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Gariki" data-to="Emene" data-fare="800">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/gariki-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_20%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Gariki → Emene</p>
+              <p class="text-sm font-semibold mt-0.5">₦800 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Gariki" data-to="Abakpa" data-fare="900">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/gariki-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_20%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Gariki → Abakpa</p>
+              <p class="text-sm font-semibold mt-0.5">₦900 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="terminal-block mb-5" data-etc-reveal data-terminal="abakpa">
+      <div class="swipe-row">
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Abakpa" data-to="Holy Ghost" data-fare="500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/abakpa-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_45%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Abakpa → Holy Ghost</p>
+              <p class="text-sm font-semibold mt-0.5">₦500 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Abakpa" data-to="Gariki" data-fare="900">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/abakpa-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_45%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Abakpa → Gariki</p>
+              <p class="text-sm font-semibold mt-0.5">₦900 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Abakpa" data-to="Agbani" data-fare="1500">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/abakpa-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_45%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Abakpa → Agbani</p>
+              <p class="text-sm font-semibold mt-0.5">₦1,500 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Abakpa" data-to="Nsukka" data-fare="2000">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/abakpa-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover object-[50%_45%]" />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Abakpa → Nsukka</p>
+              <p class="text-sm font-semibold mt-0.5">₦2,000 <span class="text-mute font-medium">· 4 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="terminal-block mb-8" data-etc-reveal data-terminal="nsukka">
+      <div class="swipe-row">
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Nsukka" data-to="UNTH New Site" data-fare="600">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/nsukka-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Nsukka → UNTH New Site</p>
+              <p class="text-sm font-semibold mt-0.5">₦600 <span class="text-mute font-medium">· 3 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Nsukka" data-to="Abakpa (Old)" data-fare="900">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/nsukka-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Nsukka → Abakpa (Old)</p>
+              <p class="text-sm font-semibold mt-0.5">₦900 <span class="text-mute font-medium">· 3 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+        <article class="card bg-soft-300 rounded-[26px] border border-white/50 p-3 shadow-sm" data-from="Nsukka" data-to="Abakpa (Loading)" data-fare="2000">
+          <div class="media relative overflow-hidden rounded-2xl w-full h-52 bg-gray-100 mb-2.5" data-slides="1">
+          <div class="slide-track absolute inset-0 flex">
+            <div class="relative shrink-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-400">
+              <img src="assets/terminals/nsukka-bg.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()" class="absolute inset-0 w-full h-full object-cover " />
+            </div>
+          </div>
+          <div class="relative z-10 w-full h-full flex items-center justify-center p-2 pointer-events-none">
+            <img src="assets/bus-shadow.png" alt="ETC Bus" decoding="async" class="max-h-full max-w-full object-contain" />
+          </div>
+          <span class="rating-badge frost rating-btn z-20 absolute top-3 left-3 h-9 px-3 rounded-full flex items-center gap-1.5 text-[13px] font-semibold text-ink" role="button" tabindex="0"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.5l-6 3.4 1.3-6.7-5-4.7 6.8-.8z" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>0.0</span>
+          <button class="bookmark-btn frost z-20 absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center" aria-label="Save route" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+          <div class="flex justify-between items-end gap-2">
+            <div class="min-w-0">
+              <p class="text-[17px] font-bold uppercase leading-snug">Nsukka → Abakpa (Loading)</p>
+              <p class="text-sm font-semibold mt-0.5">₦2,000 <span class="text-mute font-medium">· 3 routes</span></p>
+            </div>
+            <button class="view-btn bg-ink text-white text-[13px] font-medium rounded-full px-4 py-2.5 whitespace-nowrap shrink-0">View details</button>
+          </div>
+        </article>
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="etc-nav no-anim" data-etc-reveal data-active="0" style="--i:0" aria-label="Main">
+    <span class="indicator" aria-hidden="true"></span>
+    <a href="index.html" class="etc-tab is-active" aria-label="Home" aria-current="page">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="label">Home</span>
+    </a>
+    <a href="map.html" class="etc-tab" aria-label="Map">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span class="label">Map</span>
+    </a>
+    <a href="events.html" class="etc-tab" aria-label="Events">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="17" rx="3.5"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><circle class="dot" cx="8" cy="14.2" r="1.15"/><circle class="dot" cx="12" cy="14.2" r="1.15"/><circle class="dot" cx="16" cy="14.2" r="1.15"/><circle class="dot" cx="8" cy="18" r="1.15"/><circle class="dot" cx="12" cy="18" r="1.15"/><circle class="dot" cx="16" cy="18" r="1.15"/></svg>
+      <span class="label">Events</span>
+    </a>
+  </nav>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+      <script>
+    (function () {
+      function unlock() {
+        try {
+          document.body && (document.body.style.overflow = "");
+          document.documentElement && (document.documentElement.style.overflow = "");
+          document.documentElement && document.documentElement.classList.remove("map-open");
+          document.querySelectorAll(".ov.show:not(.cal-ov):not(.profile-ov), .rate-ov, .pay-root.show, [data-etc-ghost-shield], .lock-ov").forEach(function (n) {
+            try { n.classList.remove("show"); n.remove(); } catch (_) {}
+          });
+          document.querySelectorAll(".profile-ov").forEach(function (n) {
+            try { n.classList.remove("show", "locked"); n.style.pointerEvents = ""; n.setAttribute("aria-hidden", "true"); } catch (_) {}
+          });
+          document.querySelectorAll(".cal-ov").forEach(function (n) {
+            try { n.classList.remove("show"); n.setAttribute("aria-hidden", "true"); } catch (_) {}
+          });
+        } catch (_) {}
+      }
+      unlock();
+      document.addEventListener("DOMContentLoaded", unlock);
+      window.addEventListener("pageshow", unlock);
+      // Extra safety after slow scripts
+      setTimeout(unlock, 400);
+      setTimeout(unlock, 1500);
+    })();
+  </script>
+    <script src="js/firebase-config.js"></script>
+  <script src="vendor/v10/firebase-app-compat.js"></script>
+  <script>window.firebase||document.write('<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"><\/script>')</script>
+  <script src="vendor/v10/firebase-auth-compat.js"></script>
+  <script>window.firebase&&firebase.auth||document.write('<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"><\/script>')</script>
+  <script src="vendor/v10/firebase-firestore-compat.js"></script>
+  <script>window.firebase&&firebase.firestore||document.write('<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"><\/script>')</script>
+  <script src="js/firebase-init.js"></script>
+  <script src="native/loader.js"></script>
+<script src="js/nav.js"></script>
+  <script>if (/[?&]perf=1/.test(location.search)) { var _p = document.createElement("script"); _p.src = "js/perf-probe.js"; document.head.appendChild(_p); }</script>
+  <script src="js/dock.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/fares-live.js"></script>
+  <script src="js/chat-bridge.js"></script>
+  <script src="js/dispute-replies.js"></script>
+  <script src="js/occupancy.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/tokens.js"></script>
+  <script src="js/tickets.js"></script>
+  <script src="js/native-alarm.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/push.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      setTimeout(function () {
+        try {
+          if (window.ETC_Tickets && window.ETC_Tickets.checkLateTickets) {
+            window.ETC_Tickets.checkLateTickets();
+          }
+        } catch (e) { console.warn("[ETC] late check", e); }
+        try {
+          if (window.ETC_Tickets && window.ETC_Tickets.checkSeatReleasedAlerts) {
+            window.ETC_Tickets.checkSeatReleasedAlerts();
+          }
+        } catch (e) { console.warn("[ETC] seat release check", e); }
+      }, 1200);
+      setInterval(function () {
+        if (document.hidden) return; // don't pile up work while the tab is in the background
+        try {
+          if (window.ETC_Tickets && window.ETC_Tickets.checkLateTickets) {
+            window.ETC_Tickets.checkLateTickets();
+          }
+        } catch (_) {}
+      }, 30000);
+    });
+  </script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

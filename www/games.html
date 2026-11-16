@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Waiting Games | ETC</title>
+  <link rel="stylesheet" href="css/tailwind.css" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)">
+  <link rel="stylesheet" href="vendor/fonts/plus-jakarta-sans.css" onerror="this.onerror=null;this.href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'">
+  <script>
+    window.tailwind=window.tailwind||{};tailwind.config = { theme: { extend: {
+      colors: { soft: { 100: '#DCDDE0', 200: '#D2D3D6', 300: '#E3E4E6' }, ink: '#111112', mute: '#8A8C90', navy: '#0B0F3A' }
+    } } }
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .games-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 8px 16px 120px;
+    }
+    .game-tile {
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.55);
+      border-radius: 22px;
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.15s;
+      box-shadow: 0 8px 24px rgba(11,15,58,0.06);
+    }
+    .game-tile:active { transform: scale(0.97); }
+    .game-tile .emoji { font-size: 32px; margin-bottom: 8px; }
+    .game-tile h3 { font-size: 15px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; }
+    .game-tile p { font-size: 11.5px; color: var(--mute); margin: 0; font-weight: 500; }
+    .game-tile.featured {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(11,15,58,0.95), rgba(26,35,126,0.9));
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .game-tile.featured p { color: rgba(255,255,255,0.7); }
+    .game-panel {
+      display: none;
+      padding: 0 16px 100px;
+    }
+    .game-panel.active { display: block; }
+    .diff-row { display: flex; gap: 8px; margin: 12px 0 16px; flex-wrap: wrap; }
+    .diff-chip {
+      height: 34px; padding: 0 14px; border-radius: 999px; border: 0;
+      background: #F1F2F4; font: 700 12.5px var(--font); color: var(--ink); cursor: pointer;
+    }
+    .diff-chip.on { background: var(--navy); color: #fff; }
+    /* TicTacToe */
+    .ttt-board {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      max-width: 280px; margin: 0 auto 16px;
+    }
+    .ttt-cell {
+      aspect-ratio: 1; border-radius: 16px; border: 0;
+      background: rgba(255,255,255,0.9); font-size: 32px; font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: pointer;
+    }
+    .ttt-cell:disabled { cursor: default; opacity: 0.9; }
+    /* Chess – fixed square board (aspect-ratio fails when panel was display:none) */
+    .chess-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      width: min(320px, 88vw);
+      height: min(320px, 88vw);
+      margin: 0 auto 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+      background: #b58863;
+    }
+    .chess-sq {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(18px, 5.2vw, 26px);
+      line-height: 1;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 0;
+      min-height: 0;
+    }
+    .chess-sq.light { background: #f0d9b5; }
+    .chess-sq.dark { background: #b58863; }
+    .chess-sq.sel { box-shadow: inset 0 0 0 3px #0B0F3A; }
+    .chess-sq.hint::after {
+      content: ""; position: absolute; width: 28%; height: 28%; border-radius: 50%;
+      background: rgba(11,15,58,0.35);
+    }
+    .chess-sq.hint.capture::after {
+      width: 86%; height: 86%; background: transparent;
+      border: 3px solid rgba(180,40,40,0.55); border-radius: 50%;
+    }
+    .chess-sq.last-from { background: #cdd26a !important; }
+    .chess-sq.last-to { background: #aaa23a !important; }
+    .chess-sq.check { box-shadow: inset 0 0 0 3px #c0392b; }
+    .chess-sq .pc { pointer-events: none; font-weight: 400; }
+    .chess-sq .pc.w {
+      color: #fffef8;
+      -webkit-text-stroke: 0.6px #2a2a2a;
+      text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    }
+    .chess-sq .pc.b { color: #111; }
+    /* Tournament */
+    .tour-hero {
+      background: linear-gradient(145deg, #0B0F3A 0%, #1a237e 55%, #283593 100%);
+      border-radius: 28px; padding: 28px 20px 24px; color: #fff; text-align: center;
+      margin-bottom: 18px; position: relative; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(11,15,58,0.35);
+    }
+    .tour-hero::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(255,215,0,0.18), transparent 50%);
+      pointer-events: none;
+    }
+    .tour-trophy { font-size: 56px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.35)); position: relative;
+      animation: trophyFloat 3s ease-in-out infinite; }
+    @keyframes trophyFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .tour-hero h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin: 8px 0 4px; position: relative; }
+    .tour-hero p { font-size: 13px; opacity: 0.75; margin: 0; position: relative; }
+    .tour-bracket {
+      display: flex; gap: 0; overflow-x: auto; padding: 12px 8px 20px;
+      -webkit-overflow-scrolling: touch; align-items: stretch;
+    }
+    .tour-round {
+      min-width: 148px; flex-shrink: 0; display: flex; flex-direction: column; position: relative;
+    }
+    .tour-round-title {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--mute); margin-bottom: 12px; text-align: center;
+    }
+    .tour-round-body {
+      flex: 1; display: flex; flex-direction: column; justify-content: space-around;
+      gap: 16px; position: relative; padding-right: 18px;
+    }
+    .tour-round:last-child .tour-round-body { padding-right: 0; }
+    .tour-match-wrap { position: relative; display: flex; align-items: center; }
+    .tour-match-wrap::after {
+      content: ""; position: absolute; right: -18px; top: 50%;
+      width: 18px; height: 2px; background: rgba(11,15,58,0.2);
+    }
+    .tour-round:last-child .tour-match-wrap::after { display: none; }
+    .tour-round-body.has-joins::before {
+      content: ""; position: absolute; right: 0;
+      top: calc(12.5% + 4px); bottom: calc(12.5% + 4px);
+      width: 2px; background: rgba(11,15,58,0.2);
+    }
+    .tour-round.sf .tour-round-body.has-joins::before { top: 25%; bottom: 25%; }
+    .tour-round.final .tour-round-body.has-joins::before { display: none; }
+    .tour-match {
+      background: rgba(255,255,255,0.92); border: 1.5px solid rgba(255,255,255,0.65);
+      border-radius: 14px; padding: 8px 10px;
+      box-shadow: 0 4px 14px rgba(11,15,58,0.06); width: 100%; position: relative; z-index: 1;
+    }
+    .tour-match.live {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 2px rgba(11,15,58,0.18), 0 8px 20px rgba(11,15,58,0.12);
+    }
+    .tour-match.done { opacity: 0.92; }
+    .tour-player { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; padding: 5px 0; }
+    .tour-player.winner { color: var(--navy); }
+    .tour-player.loser { opacity: 0.4; text-decoration: line-through; }
+    .tour-seed {
+      width: 22px; height: 22px; border-radius: 7px; background: #F1F2F4;
+      font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .tour-player.winner .tour-seed { background: var(--navy); color: #fff; }
+    .tour-vs { font-size: 9px; font-weight: 700; color: var(--mute); text-align: center; letter-spacing: 0.08em; margin: -2px 0; }
+    .tour-series { font-size: 10px; font-weight: 700; color: var(--navy); text-align: center; margin-top: 4px; }
+    .tour-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .tour-play-btn {
+      height: 52px; border-radius: 16px; border: 0;
+      background: linear-gradient(135deg, #0B0F3A, #1a237e); color: #fff; font: 700 15px var(--font);
+      box-shadow: 0 10px 28px rgba(11,15,58,0.3); cursor: pointer;
+    }
+    .tour-play-btn:disabled { opacity: 0.4; cursor: default; }
+    .tour-champ { text-align: center; padding: 24px 16px; background: linear-gradient(145deg, #0B0F3A, #1a237e); border-radius: 24px; color: #fff; margin-top: 12px; }
+    .tour-champ .big-trophy { font-size: 64px; margin-bottom: 8px; }
+    .tour-champ h3 { font-size: 20px; font-weight: 800; margin: 0 0 4px; }
+    .tour-champ p { font-size: 13px; opacity: 0.75; margin: 0; }
+    .series-bar { text-align: center; font-size: 13px; font-weight: 700; color: var(--navy); margin: 4px 0 10px; }
+    /* Quiz */
+    .quiz-q { font-size: 17px; font-weight: 700; margin-bottom: 14px; line-height: 1.35; }
+    .quiz-opt {
+      display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px;
+      border-radius: 16px; border: 1.5px solid rgba(17,17,18,0.08); background: rgba(255,255,255,0.9);
+      font: 600 14px var(--font); cursor: pointer;
+    }
+    .quiz-opt.correct { background: #d4edda; border-color: #28a745; }
+    .quiz-opt.wrong { background: #f8d7da; border-color: #dc3545; }
+    /* Memory */
+    .mem-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      max-width: 300px; margin: 0 auto;
+    }
+    .mem-card {
+      aspect-ratio: 1; border-radius: 12px; border: 0;
+      background: var(--navy); color: #fff; font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform 0.2s;
+    }
+    .mem-card.flipped, .mem-card.matched { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .mem-card.matched { opacity: 0.7; }
+    /* Drafts / Checkers simplified */
+    .draft-board {
+      display: grid; grid-template-columns: repeat(8, 1fr);
+      max-width: 320px; margin: 0 auto; border-radius: 8px; overflow: hidden;
+    }
+    .draft-sq { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+    .draft-sq.dark { background: #5c4033; }
+    .draft-sq.light { background: #e8d5b7; }
+    .piece {
+      width: 70%; height: 70%; border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .piece.red { background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b); }
+    .piece.black { background: radial-gradient(circle at 30% 30%, #555, #1a1a1a); }
+    .piece.king::after { content: "♛"; font-size: 12px; color: gold; display: block; text-align: center; line-height: 1.8; }
+    .status-bar {
+      text-align: center; font-weight: 700; font-size: 14px; margin: 10px 0;
+      min-height: 22px;
+    }
+    .back-game {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 14px; border-radius: 999px;
+      background: #F1F2F4; border: 0; font: 700 13px var(--font); margin-bottom: 8px; cursor: pointer;
+    }
+  </style>
+
+
+<style id="etc-anti-zoom-select">
+html,body{touch-action:manipulation;overscroll-behavior-y:auto;-webkit-text-size-adjust:100%}
+/* allow vertical scroll everywhere */
+#chatMessages,.chat-messages,[data-chat-msgs],.msgs,main,.page,body,html{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:auto;
+}
+html,body,*{-webkit-user-select:none!important;-moz-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+input,textarea,[contenteditable="true"],.selectable,.ref-id,[data-selectable],#refId,.ticket-ref,.reference-id,[class*="ref-id"],[class*="reference"]{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
+</style>
+<script>
+(function(){
+  // Block pinch zoom only — do NOT block single-finger scroll
+  document.addEventListener('gesturestart',function(e){e.preventDefault()},{passive:false});
+  document.addEventListener('gesturechange',function(e){e.preventDefault()},{passive:false});
+  document.addEventListener('touchmove',function(e){
+    if (e.touches && e.touches.length > 1) e.preventDefault();
+  },{passive:false});
+  // Do not preventDefault on touchend — that breaks scroll
+})();
+</script>
+
+</head>
+<body class="min-h-screen text-ink">
+  <div class="max-w-[430px] mx-auto">
+    <header class="flex items-center gap-3 px-4 pt-4 pb-2">
+      <a href="index.html" class="frost w-10 h-10 rounded-full flex items-center justify-center" aria-label="Back">
+        <svg class="ico" width="18" height="18" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </a>
+      <h1 class="page-title text-xl font-extrabold">Waiting Games</h1>
+    </header>
+    <p class="px-5 text-sm text-mute mb-3">Pass the time while you wait for your bus.</p>
+
+    <div id="lobby" class="games-grid">
+      <div class="game-tile featured" data-game="tournament">
+        <div class="emoji">🏆</div>
+        <h3>Tic Tac Toe Cup</h3>
+        <p>Bracket · Classic 3×3 · Lift the trophy</p>
+      </div>
+      <div class="game-tile" data-game="ttt"><div class="emoji">⭕</div><h3>Tic Tac Toe</h3><p>Classic 3×3</p></div>
+      <div class="game-tile" data-game="chess"><div class="emoji">♟️</div><h3>Chess</h3><p>Full rules + AI</p></div>
+      <div class="game-tile" data-game="quiz"><div class="emoji">🧠</div><h3>Enugu Quiz</h3><p>Local knowledge</p></div>
+      <div class="game-tile" data-game="memory"><div class="emoji">🃏</div><h3>Memory Match</h3><p>Flip the cards</p></div>
+      <div class="game-tile" data-game="drafts"><div class="emoji">🔴</div><h3>Drafts</h3><p>Checkers style</p></div>
+      <div class="game-tile" data-game="mission"><div class="emoji">🚌</div><h3>Bus Mission</h3><p>Catch the routes</p></div>
+    </div>
+
+    <!-- TOURNAMENT -->
+    <div id="panel-tournament" class="game-panel">
+      <button type="button" class="back-game" data-back>← All games</button>
+      <div class="tour-hero">
+        <div class="tour-trophy">🏆</div>
+        <h2>ETC Tic Tac Toe Cup</h2>
+        <p>Single-elimination · Play each match · Lift the trophy</p>
+      </div>
+      <div id="tourBracket" class="tour-bracket"></div>
+      <div class="tour-actions">
+        <button type="button" class="tour-play-btn" id="tourPlay">Play next match</button>
+        <button type="button" class="alarm-btn secondary" id="tourReset" style="width:100%">New tournament</button>
+      </div>
+      <div id="tourChamp" style="display:none"></div>
+    </div>
+
+    <!-- TIC TAC TOE -->
+    <div id="panel-ttt" class="game-panel">
+      <button type="button" class="back-game" data-back>← All games</button>
+      <h2 class="text-lg font-extrabold mb-1">Tic Tac Toe</h2>
+      <div class="diff-row">
+        <button type="button" class="diff-chip on" data-diff="easy">Easy</button>
+        <button type="button" class="diff-chip" data-diff="medium">Medium</button>
+        <button type="button" class="diff-chip" data-diff="hard">Hard</button>
+      </div>
+      <div class="status-bar" id="tttStatus">Your turn (X)</div>
+      <div class="ttt-board" id="tttBoard"></div>
+      <button type="button" class="alarm-btn primary" style="width:100%;max-width:280px;margin:0 auto;display:block" id="tttReset">New game</button>
+    </div>
+
+    <!-- CHESS -->
+    <div id="panel-chess" class="game-panel">
+      <button type="button" class="back-game" data-back>← All games</button>
+      <h2 class="text-lg font-extrabold mb-1">Chess</h2>
+      <div class="diff-row" id="chessDiff">
+        <button type="button" class="diff-chip on" data-cdiff="1">Easy</button>
+        <button type="button" class="diff-chip" data-cdiff="2">Medium</button>
+        <button type="button" class="diff-chip" data-cdiff="3">Hard</button>
+      </div>
+      <div class="status-bar" id="chessStatus">White to move</div>
+      <div class="chess-board" id="chessBoard"></div>
+      <div style="display:flex;gap:8px;max-width:340px;margin:12px auto 0">
+        <button type="button" class="alarm-btn secondary" style="flex:1" id="chessUndo">Undo</button>
+        <button type="button" class="alarm-btn primary" style="flex:1" id="chessReset">New game</button>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="panel-quiz" class="game-panel">
+      <button type="button" class="back-game" data-back>← All games</button>
+      <h2 class="text-lg font-extrabold mb-1">Enugu Quiz</h2>
+      <div class="diff-row">
+        <button type="button" class="diff-chip on" data-qdiff="easy">Easy</button>
+        <button type="button" class="diff-chip" data-qdiff="hard">Hard</button>
+      </div>
+      <div class="status-bar" id="quizScore">Score: 0</div>
+      <div id="quizBox"></div>
+    </div>
+
+    <!-- MEMORY -->
+    <div id="panel-memory" class="game-panel">
+      <button type="button" class="back-game" data-back>← All games</button>
+      <h2 class="text-lg font-extrabold mb-1">Memory Match</h2>
+      <div class="diff-row">
+        <button type="button" class="diff-chip on" data-mdiff="4">Easy (8)</button>
+        <button type="button" class="diff-chip" data-mdiff="6">Medium (12)</button>
+        <button type="button" class="diff-chip" data-mdiff="8">Hard (16)</button>
+      </div>
+      <div class="status-bar" id="memStatus">Find all pairs</div>
+      <div class="mem-grid" id="memGrid"></div>
+    </div>
+
+    <!-- DRAFTS -->
+    <div id="panel-drafts" class="game-panel">
+      <button type="button" class="back-game" data-back>← All games</button>
+      <h2 class="text-lg font-extrabold mb-1">Drafts</h2>
+      <p class="text-sm text-mute mb-2">You are Red. Jump to capture.</p>
+      <div class="status-bar" id="draftStatus">Red to move</div>
+      <div class="draft-board" id="draftBoard"></div>
+      <button type="button" class="alarm-btn primary" style="width:100%;max-width:280px;margin:12px auto 0;display:block" id="draftReset">New game</button>
+    </div>
+
+    <!-- MISSION -->
+    <div id="panel-mission" class="game-panel">
+      <button type="button" class="back-game" data-back>← All games</button>
+      <h2 class="text-lg font-extrabold mb-1">Bus Mission</h2>
+      <p class="text-sm text-mute mb-3">Remember the route sequence, then repeat it.</p>
+      <div class="status-bar" id="missStatus">Level 1</div>
+      <div id="missGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:280px;margin:0 auto"></div>
+      <button type="button" class="alarm-btn primary" style="width:100%;max-width:280px;margin:16px auto 0;display:block" id="missStart">Start</button>
+    </div>
+  </div>
+
+  <script src="js/chess-engine.js?v=3"></script>
+  <script>
+    // Lobby navigation
+    const lobby = document.getElementById("lobby");
+    document.querySelectorAll(".game-tile").forEach((t) => {
+      t.addEventListener("click", () => {
+        lobby.style.display = "none";
+        document.querySelectorAll(".game-panel").forEach((p) => p.classList.remove("active"));
+        const p = document.getElementById("panel-" + t.dataset.game);
+        if (p) { p.classList.add("active"); initGame(t.dataset.game); }
+      });
+    });
+    document.querySelectorAll("[data-back]").forEach((b) => {
+      b.addEventListener("click", () => {
+        document.querySelectorAll(".game-panel").forEach((p) => p.classList.remove("active"));
+        lobby.style.display = "";
+      });
+    });
+
+    function initGame(name) {
+      if (name === "ttt") initTTT();
+      if (name === "chess") initChess();
+      if (name === "quiz") initQuiz();
+      if (name === "memory") initMemory();
+      if (name === "drafts") initDrafts();
+      if (name === "mission") initMission();
+      if (name === "tournament") initTournament();
+    }
+
+    // ========== TIC TAC TOE ==========
+    let tttDiff = "easy", tttBoard, tttTurn, tttOver, tttFromTour = false;
+    function initTTT() {
+      tttFromTour = false;
+      document.querySelectorAll("#panel-ttt .diff-chip").forEach((c) => {
+        c.onclick = () => {
+          document.querySelectorAll("#panel-ttt .diff-chip").forEach((x) => x.classList.remove("on"));
+          c.classList.add("on");
+          tttDiff = c.dataset.diff;
+          resetTTT();
+        };
+      });
+      document.getElementById("tttReset").onclick = () => { tttFromTour = false; resetTTT(); };
+      resetTTT();
+    }
+    function resetTTT() {
+      tttBoard = Array(9).fill(null);
+      tttTurn = "X";
+      tttOver = false;
+      document.getElementById("tttStatus").textContent = tttFromTour ? "Tournament — your turn (X)" : "Your turn (X)";
+      renderTTT();
+    }
+    function renderTTT() {
+      const board = document.getElementById("tttBoard");
+      board.innerHTML = "";
+      tttBoard.forEach((v, i) => {
+        const b = document.createElement("button");
+        b.className = "ttt-cell";
+        b.textContent = v || "";
+        b.disabled = !!v || tttOver;
+        b.onclick = () => tttMove(i);
+        board.appendChild(b);
+      });
+    }
+    function winner(b) {
+      const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for (const [a,c,d] of lines) if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
+      if (b.every(Boolean)) return "draw";
+      return null;
+    }
+    function tttMove(i) {
+      if (tttBoard[i] || tttOver) return;
+      tttBoard[i] = "X";
+      renderTTT();
+      let w = winner(tttBoard);
+      if (w) { endTTT(w); return; }
+      tttTurn = "O";
+      document.getElementById("tttStatus").textContent = "CPU thinking…";
+      setTimeout(cpuTTT, tttDiff === "hard" ? 380 : 220);
+    }
+    function cpuTTT() {
+      if (tttOver) return;
+      const empty = tttBoard.map((v, i) => v ? -1 : i).filter((i) => i >= 0);
+      if (!empty.length) { endTTT("draw"); return; }
+      let pick;
+      if (tttDiff === "hard" || tttDiff === "medium") {
+        for (const mark of ["O", "X"]) {
+          for (const i of empty) {
+            const t = tttBoard.slice(); t[i] = mark;
+            if (winner(t) === mark) { pick = i; break; }
+          }
+          if (pick !== undefined) break;
+        }
+      }
+      if (pick === undefined && tttDiff === "hard") {
+        // corners then center
+        const corners = [0, 2, 6, 8].filter((i) => empty.includes(i));
+        if (empty.includes(4)) pick = 4;
+        else if (corners.length) pick = corners[Math.floor(Math.random() * corners.length)];
+      }
+      if (pick === undefined) pick = empty[Math.floor(Math.random() * empty.length)];
+      tttBoard[pick] = "O";
+      renderTTT();
+      const w = winner(tttBoard);
+      if (w) endTTT(w);
+      else {
+        tttTurn = "X";
+        document.getElementById("tttStatus").textContent = tttFromTour ? "Tournament — your turn (X)" : "Your turn (X)";
+      }
+    }
+    function endTTT(w) {
+      tttOver = true;
+      const msg = w === "draw" ? "Draw!" : w === "X" ? "You win! 🎉" : "CPU wins";
+      document.getElementById("tttStatus").textContent = msg;
+      renderTTT();
+      if (tttFromTour) {
+        setTimeout(() => tourOnGameResult(w), 650);
+      }
+    }
+
+    // ========== CHESS (full rules via ETCChess) ==========
+    let C = {}, cDepth = 1, cHistory = [];
+    function initChess() {
+      if (typeof ETCChess === "undefined") {
+        setChessStatus("Chess engine failed to load");
+        return;
+      }
+      document.querySelectorAll("#chessDiff .diff-chip").forEach((chip) => {
+        chip.onclick = () => {
+          document.querySelectorAll("#chessDiff .diff-chip").forEach((x) => x.classList.remove("on"));
+          chip.classList.add("on");
+          cDepth = +chip.dataset.cdiff;
+        };
+      });
+      document.getElementById("chessReset").onclick = () => resetChess(false);
+      document.getElementById("chessUndo").onclick = chessUndo;
+      resetChess(false);
+    }
+    function resetChess(fromTour) {
+      if (typeof ETCChess === "undefined") return;
+      const s = ETCChess.startPosition();
+      C = {
+        board: s.board, turn: s.turn, castle: s.castle, ep: s.ep,
+        sel: null, moves: [], last: null, over: false, fromTour: !!fromTour
+      };
+      cHistory = [];
+      setChessStatus(fromTour ? "Tournament match — your turn (White)" : "White to move — your turn");
+      renderChess();
+    }
+    function setChessStatus(t) {
+      const el = document.getElementById("chessStatus");
+      if (el) el.textContent = t;
+    }
+    function renderChess() {
+      const board = document.getElementById("chessBoard");
+      if (!board || !C.board) return;
+      try {
+        const frag = document.createDocumentFragment();
+        const hints = {};
+        if (C.sel && C.moves && C.moves.length) {
+          for (let i = 0; i < C.moves.length; i++) {
+            const m = C.moves[i];
+            hints[m.tr + "," + m.tc] = C.board[m.tr][m.tc] ? "capture" : "quiet";
+          }
+        }
+        let kPos = null, checked = false;
+        try {
+          kPos = ETCChess.findKing(C.board, C.turn === "w");
+          checked = ETCChess.inCheck(C.board, C.turn === "w");
+        } catch (_) {}
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const sq = document.createElement("div");
+            sq.className = "chess-sq " + ((r + c) % 2 === 0 ? "light" : "dark");
+            if (C.sel && C.sel[0] === r && C.sel[1] === c) sq.classList.add("sel");
+            if (C.last && C.last[0] === r && C.last[1] === c) sq.classList.add("last-from");
+            if (C.last && C.last[2] === r && C.last[3] === c) sq.classList.add("last-to");
+            const key = r + "," + c;
+            if (hints[key]) {
+              sq.classList.add("hint");
+              if (hints[key] === "capture") sq.classList.add("capture");
+            }
+            if (checked && kPos && kPos[0] === r && kPos[1] === c) sq.classList.add("check");
+            const p = C.board[r][c];
+            if (p) {
+              const span = document.createElement("span");
+              span.className = "pc " + (ETCChess.isWhite(p) ? "w" : "b");
+              span.textContent = ETCChess.PIECES[p] || p;
+              sq.appendChild(span);
+            }
+            sq.onclick = () => chessClick(r, c);
+            frag.appendChild(sq);
+          }
+        }
+        board.innerHTML = "";
+        board.appendChild(frag);
+      } catch (err) {
+        console.error("renderChess", err);
+      }
+    }
+    function chessClick(r, c) {
+      if (C.over || C.turn !== "w") return;
+      if (C.sel) {
+        const m = C.moves.find(x => x.tr === r && x.tc === c);
+        if (m) { doMove(m); return; }
+        const p = C.board[r][c];
+        if (p && ETCChess.isWhite(p)) {
+          C.sel = [r, c];
+          C.moves = ETCChess.legalMoves(C, r, c);
+          renderChess();
+          return;
+        }
+        C.sel = null; C.moves = [];
+        renderChess();
+        return;
+      }
+      const p = C.board[r][c];
+      if (p && ETCChess.isWhite(p)) {
+        C.sel = [r, c];
+        C.moves = ETCChess.legalMoves(C, r, c);
+        renderChess();
+      }
+    }
+    function doMove(m) {
+      cHistory.push({ board: C.board.map(r => r.slice()), turn: C.turn, castle: { ...C.castle }, ep: C.ep ? [...C.ep] : null });
+      const next = ETCChess.applyMove(C, m.r, m.c, m.tr, m.tc, m.promo, m.special);
+      C.board = next.board; C.castle = next.castle; C.ep = next.ep; C.turn = next.turn;
+      C.last = [m.r, m.c, m.tr, m.tc]; C.sel = null; C.moves = [];
+      renderChess();
+      const moves = ETCChess.allLegal(C);
+      if (!moves.length) {
+        C.over = true;
+        if (ETCChess.inCheck(C.board, false)) {
+          setChessStatus("Checkmate — you win! 🎉");
+          if (C.fromTour) tourOnResult(true);
+        } else {
+          setChessStatus("Stalemate — draw");
+          if (C.fromTour) tourOnResult(false);
+        }
+        return;
+      }
+      setChessStatus(ETCChess.inCheck(C.board, false) ? "Black is in check…" : "Black thinking…");
+      setTimeout(chessAI, 280);
+    }
+    function chessAI() {
+      if (C.over || typeof ETCChess === "undefined") return;
+      const state = { board: C.board, turn: C.turn, castle: C.castle, ep: C.ep };
+      const move = ETCChess.pickAIMove(state, cDepth);
+      if (!move) {
+        C.over = true;
+        if (ETCChess.inCheck(C.board, false)) {
+          setChessStatus("Checkmate — you win! 🎉");
+          if (C.fromTour) tourOnResult(true);
+        } else {
+          setChessStatus("Stalemate");
+          if (C.fromTour) tourOnResult(false);
+        }
+        return;
+      }
+      cHistory.push({ board: C.board.map(r => r.slice()), turn: C.turn, castle: { ...C.castle }, ep: C.ep ? [...C.ep] : null });
+      const next = ETCChess.applyMove(C, move.r, move.c, move.tr, move.tc, move.promo, move.special);
+      C.board = next.board; C.castle = next.castle; C.ep = next.ep; C.turn = next.turn;
+      C.last = [move.r, move.c, move.tr, move.tc];
+      renderChess();
+      const moves = ETCChess.allLegal(C);
+      if (!moves.length) {
+        C.over = true;
+        if (ETCChess.inCheck(C.board, true)) {
+          setChessStatus("Checkmate — Black wins");
+          if (C.fromTour) tourOnResult(false);
+        } else {
+          setChessStatus("Stalemate — draw");
+          if (C.fromTour) tourOnResult(false);
+        }
+        return;
+      }
+      setChessStatus(ETCChess.inCheck(C.board, true) ? "Check! Your turn" : "White to move — your turn");
+    }
+    function chessUndo() {
+      if (cHistory.length < 2 || C.turn !== "w" || C.over) return;
+      const s = cHistory[cHistory.length - 2];
+      cHistory = cHistory.slice(0, -2);
+      C.board = s.board; C.turn = s.turn; C.castle = s.castle; C.ep = s.ep;
+      C.last = null; C.sel = null; C.moves = []; C.over = false;
+      setChessStatus("White to move — your turn");
+      renderChess();
+    }
+
+    // ========== TOURNAMENT ==========
+    const BOTS = [
+      { name: "Okoro", seed: 8, depth: 1 },
+      { name: "Adaeze", seed: 4, depth: 1 },
+      { name: "Chinedu", seed: 5, depth: 2 },
+      { name: "Ngozi", seed: 2, depth: 2 },
+      { name: "Emeka", seed: 7, depth: 1 },
+      { name: "Amaka", seed: 3, depth: 2 },
+      { name: "Ifeanyi", seed: 6, depth: 1 },
+      { name: "You", seed: 1, depth: 0, isPlayer: true }
+    ];
+    let tour = null;
+    let series = { you: 0, opp: 0, games: 0, techYou: 0, techOpp: 0, moves: 0 };
+
+    function initTournament() {
+      document.getElementById("tourReset").onclick = () => newTournament();
+      document.getElementById("tourPlay").onclick = playNextMatch;
+      if (!tour) newTournament();
+      else renderBracket();
+    }
+    function mkMatch(a, b, from) {
+      return { a, b, winner: null, from: from || null, scoreA: 0, scoreB: 0 };
+    }
+    function newTournament() {
+      const others = BOTS.filter(b => !b.isPlayer).slice().sort(() => Math.random() - 0.5);
+      const players = [BOTS.find(b => b.isPlayer), ...others].map((b, i) => ({ ...b, id: i, eliminated: false }));
+      tour = {
+        players,
+        rounds: [
+          [mkMatch(0, 7), mkMatch(3, 4), mkMatch(1, 6), mkMatch(2, 5)],
+          [mkMatch(null, null, [0, 1]), mkMatch(null, null, [2, 3])],
+          [mkMatch(null, null, [0, 1])]
+        ],
+        currentRound: 0, currentMatch: 0, champion: null
+      };
+      series = { you: 0, opp: 0, games: 0, techYou: 0, techOpp: 0, moves: 0 };
+      document.getElementById("tourChamp").style.display = "none";
+      const btn = document.getElementById("tourPlay");
+      btn.disabled = false; btn.textContent = "Play next match";
+      renderBracket();
+    }
+    function resolveSlots() {
+      for (let r = 1; r < tour.rounds.length; r++) {
+        for (const m of tour.rounds[r]) {
+          if (m.from) {
+            const prev = tour.rounds[r - 1];
+            m.a = prev[m.from[0]].winner;
+            m.b = prev[m.from[1]].winner;
+          }
+        }
+      }
+    }
+    function renderBracket() {
+      resolveSlots();
+      const el = document.getElementById("tourBracket");
+      const names = ["Quarterfinals", "Semifinals", "Final"];
+      const cls = ["qf", "sf", "final"];
+      el.innerHTML = tour.rounds.map((round, ri) => {
+        const isCurrent = ri === tour.currentRound && !tour.champion;
+        return `<div class="tour-round ${cls[ri]}">
+          <div class="tour-round-title">${names[ri]}</div>
+          <div class="tour-round-body has-joins">` +
+          round.map((m, mi) => {
+            const live = isCurrent && mi === tour.currentMatch && m.winner == null;
+            const pa = m.a != null ? tour.players[m.a] : null;
+            const pb = m.b != null ? tour.players[m.b] : null;
+            const wa = m.winner === m.a, wb = m.winner === m.b;
+            const seriesTxt = (m.scoreA || m.scoreB)
+              ? `<div class="tour-series">${m.scoreA || 0} – ${m.scoreB || 0}</div>` : "";
+            return `<div class="tour-match-wrap">
+              <div class="tour-match ${live ? "live" : ""} ${m.winner != null ? "done" : ""}">
+                <div class="tour-player ${wa ? "winner" : m.winner != null ? "loser" : ""}">
+                  <span class="tour-seed">${pa ? pa.seed : "–"}</span>${pa ? pa.name : "TBD"}
+                </div>
+                <div class="tour-vs">VS</div>
+                <div class="tour-player ${wb ? "winner" : m.winner != null ? "loser" : ""}">
+                  <span class="tour-seed">${pb ? pb.seed : "–"}</span>${pb ? pb.name : "TBD"}
+                </div>
+                ${seriesTxt}
+              </div>
+            </div>`;
+          }).join("") + `</div></div>`;
+      }).join("");
+    }
+    function seriesLabel(oppName) {
+      return `Best of 3 · You ${series.you}–${series.opp} ${oppName}`;
+    }
+    function startPlayerSeries(opp) {
+      series = { you: 0, opp: 0, games: 0, techYou: 0, techOpp: 0, moves: 0 };
+      tttDiff = (opp.depth || 1) >= 2 ? "hard" : (opp.depth || 1) === 1 ? "medium" : "easy";
+      document.querySelectorAll("#panel-ttt .diff-chip").forEach((x) => {
+        x.classList.toggle("on", x.dataset.diff === tttDiff);
+      });
+      document.getElementById("panel-tournament").classList.remove("active");
+      document.getElementById("panel-ttt").classList.add("active");
+      tttFromTour = true;
+      resetTTT();
+      document.getElementById("tttStatus").textContent = `Tournament: You vs ${opp.name}`;
+      // inject series bar if missing
+      let bar = document.getElementById("seriesBar");
+      if (!bar) {
+        bar = document.createElement("div");
+        bar.id = "seriesBar";
+        bar.className = "series-bar";
+        const status = document.getElementById("tttStatus");
+        status.parentNode.insertBefore(bar, status.nextSibling);
+      }
+      bar.style.display = "block";
+      bar.textContent = seriesLabel(opp.name);
+    }
+    function playNextMatch() {
+      if (!tour || tour.champion) return;
+      resolveSlots();
+      for (let ri = 0; ri < tour.rounds.length; ri++) {
+        for (let mi = 0; mi < tour.rounds[ri].length; mi++) {
+          const m = tour.rounds[ri][mi];
+          if (m.winner == null && m.a != null && m.b != null) {
+            tour.currentRound = ri; tour.currentMatch = mi;
+            const pa = tour.players[m.a], pb = tour.players[m.b];
+            if (pa.isPlayer || pb.isPlayer) {
+              const opp = pa.isPlayer ? pb : pa;
+              startPlayerSeries(opp);
+              return;
+            }
+            // bot vs bot – simulate best of 3
+            let sa = 0, sb = 0;
+            while (sa < 2 && sb < 2) {
+              const scoreA = (pa.depth || 1) * 2 + (8 - pa.seed) * 0.3 + Math.random();
+              const scoreB = (pb.depth || 1) * 2 + (8 - pb.seed) * 0.3 + Math.random();
+              if (Math.abs(scoreA - scoreB) < 0.15) continue; // draw → replay
+              if (scoreA > scoreB) sa++; else sb++;
+            }
+            m.scoreA = sa; m.scoreB = sb;
+            m.winner = sa > sb ? m.a : m.b;
+            tour.players[m.winner === m.a ? m.b : m.a].eliminated = true;
+            renderBracket();
+            checkChampion();
+            return;
+          }
+        }
+      }
+    }
+    // Handle one finished TTT game inside a series
+    function tourOnGameResult(result) {
+      if (!tour) return;
+      const m = tour.rounds[tour.currentRound][tour.currentMatch];
+      const pa = tour.players[m.a], pb = tour.players[m.b];
+      const opp = pa.isPlayer ? pb : pa;
+      series.games++;
+      series.moves += (tttBoard || []).filter(Boolean).length;
+
+      if (result === "draw") {
+        // Draw → rematch same game (does not award a series point)
+        document.getElementById("tttStatus").textContent = "Draw — rematch!";
+        const bar = document.getElementById("seriesBar");
+        if (bar) bar.textContent = seriesLabel(opp.name) + " · rematch";
+        setTimeout(() => {
+          resetTTT();
+          document.getElementById("tttStatus").textContent = `Rematch vs ${opp.name}`;
+        }, 900);
+        return;
+      }
+
+      const playerWonGame = result === "X";
+      // Technique points: fewer moves to win = better
+      const movesUsed = (tttBoard || []).filter(Boolean).length;
+      const tech = Math.max(1, 12 - movesUsed);
+      if (playerWonGame) { series.you++; series.techYou += tech; }
+      else { series.opp++; series.techOpp += tech; }
+
+      m.scoreA = pa.isPlayer ? series.you : series.opp;
+      m.scoreB = pa.isPlayer ? series.opp : series.you;
+
+      const bar = document.getElementById("seriesBar");
+      if (bar) bar.textContent = seriesLabel(opp.name);
+
+      // First to 2 wins
+      if (series.you >= 2 || series.opp >= 2) {
+        const playerWonSeries = series.you > series.opp;
+        // Technique tie-break if somehow equal wins after long series of draws
+        if (series.you === series.opp) {
+          const playerWonTech = series.techYou >= series.techOpp;
+          finishSeries(playerWonTech);
+        } else {
+          finishSeries(playerWonSeries);
+        }
+        return;
+      }
+
+      // Continue series – next game
+      document.getElementById("tttStatus").textContent =
+        (playerWonGame ? "You took that game!" : "They took that game") + " · Next…";
+      setTimeout(() => {
+        resetTTT();
+        document.getElementById("tttStatus").textContent =
+          `Game ${series.you + series.opp + 1} · You vs ${opp.name}`;
+      }, 900);
+    }
+    function finishSeries(playerWon) {
+      const m = tour.rounds[tour.currentRound][tour.currentMatch];
+      const pa = tour.players[m.a];
+      if (pa.isPlayer) m.winner = playerWon ? m.a : m.b;
+      else m.winner = playerWon ? m.b : m.a;
+      tour.players[m.winner === m.a ? m.b : m.a].eliminated = true;
+      tttFromTour = false;
+      const bar = document.getElementById("seriesBar");
+      if (bar) bar.style.display = "none";
+      document.getElementById("panel-ttt").classList.remove("active");
+      document.getElementById("panel-chess").classList.remove("active");
+      document.getElementById("panel-tournament").classList.add("active");
+      renderBracket();
+      checkChampion();
+    }
+    // kept for chess hooks if any
+    function tourOnResult(playerWon) { finishSeries(playerWon); }
+    function checkChampion() {
+      const final = tour.rounds[2][0];
+      if (final.winner != null) {
+        tour.champion = tour.players[final.winner];
+        const box = document.getElementById("tourChamp");
+        box.style.display = "block";
+        box.innerHTML = `<div class="tour-champ">
+          <div class="big-trophy">🏆</div>
+          <h3>${tour.champion.isPlayer ? "You are the champion!" : tour.champion.name + " wins the cup"}</h3>
+          <p>${tour.champion.isPlayer ? "Crown secured · ETC Tic Tac Toe Cup" : "Better luck next tournament"}</p>
+        </div>`;
+        const btn = document.getElementById("tourPlay");
+        btn.disabled = true; btn.textContent = "Tournament complete";
+      }
+    }
+
+    // ========== QUIZ ==========
+    const QUIZ = {
+      easy: [
+        { q: "What is the capital of Enugu State?", a: ["Enugu", "Nsukka", "Abakaliki", "Onitsha"], c: 0 },
+        { q: "Which terminal is famous in Enugu city centre?", a: ["Holy Ghost", "Lekki", "Ojota", "Park View"], c: 0 },
+        { q: "Coal City is a nickname for?", a: ["Enugu", "Lagos", "Kano", "Port Harcourt"], c: 0 },
+        { q: "₦500 can typically take you from Holy Ghost to?", a: ["Emene", "London", "Abuja", "Calabar"], c: 0 }
+      ],
+      hard: [
+        { q: "Enugu became capital of Eastern Region in?", a: ["1930s", "1967", "1914", "1991"], c: 0 },
+        { q: "University of Nigeria is located in?", a: ["Nsukka", "Awka", "Owerri", "Aba"], c: 0 },
+        { q: "The official bus system in this app is called?", a: ["ETC", "BRT", "LAGBUS", "DANFO"], c: 0 },
+        { q: "Which LGA is Emene part of?", a: ["Enugu East", "Nsukka", "Udi", "Nkanu West"], c: 0 }
+      ]
+    };
+    let qDiff = "easy", qIdx = 0, qScore = 0, qList = [];
+    function initQuiz() {
+      document.querySelectorAll("#panel-quiz .diff-chip").forEach((c) => {
+        c.onclick = () => {
+          document.querySelectorAll("#panel-quiz .diff-chip").forEach((x) => x.classList.remove("on"));
+          c.classList.add("on");
+          qDiff = c.dataset.qdiff;
+          startQuiz();
+        };
+      });
+      startQuiz();
+    }
+    function startQuiz() {
+      qList = QUIZ[qDiff].slice().sort(() => Math.random() - 0.5);
+      qIdx = 0; qScore = 0;
+      document.getElementById("quizScore").textContent = "Score: 0";
+      showQ();
+    }
+    function showQ() {
+      const box = document.getElementById("quizBox");
+      if (qIdx >= qList.length) {
+        box.innerHTML = `<p class="quiz-q">Done! Score: ${qScore}/${qList.length}</p>
+          <button type="button" class="alarm-btn primary" style="width:100%" onclick="startQuiz()">Play again</button>`;
+        return;
+      }
+      const item = qList[qIdx];
+      box.innerHTML = `<div class="quiz-q">${item.q}</div>` +
+        item.a.map((opt, i) => `<button type="button" class="quiz-opt" data-i="${i}">${opt}</button>`).join("");
+      box.querySelectorAll(".quiz-opt").forEach((b) => {
+        b.onclick = () => {
+          const i = +b.dataset.i;
+          if (i === item.c) { b.classList.add("correct"); qScore++; }
+          else {
+            b.classList.add("wrong");
+            box.querySelectorAll(".quiz-opt")[item.c].classList.add("correct");
+          }
+          document.getElementById("quizScore").textContent = `Score: ${qScore}`;
+          setTimeout(() => { qIdx++; showQ(); }, 700);
+        };
+      });
+    }
+
+    // ========== MEMORY ==========
+    const EMOJIS = ["🚌", "🎫", "📍", "⭐", "🔔", "💬", "🗓️", "♟️", "🧠", "🃏", "🔴", "🎯"];
+    let memPairs = 4, memCards = [], memFlip = [], memLock = false;
+    function initMemory() {
+      document.querySelectorAll("#panel-memory .diff-chip").forEach((c) => {
+        c.onclick = () => {
+          document.querySelectorAll("#panel-memory .diff-chip").forEach((x) => x.classList.remove("on"));
+          c.classList.add("on");
+          memPairs = +c.dataset.mdiff;
+          resetMem();
+        };
+      });
+      resetMem();
+    }
+    function resetMem() {
+      const pool = EMOJIS.slice(0, memPairs);
+      memCards = [...pool, ...pool].sort(() => Math.random() - 0.5).map((e, i) => ({ e, id: i, matched: false }));
+      memFlip = []; memLock = false;
+      document.getElementById("memStatus").textContent = "Find all pairs";
+      renderMem();
+    }
+    function renderMem() {
+      const g = document.getElementById("memGrid");
+      g.style.gridTemplateColumns = `repeat(${memPairs <= 4 ? 4 : 4}, 1fr)`;
+      g.innerHTML = "";
+      memCards.forEach((c, i) => {
+        const b = document.createElement("button");
+        b.className = "mem-card" + (c.matched || memFlip.includes(i) ? " flipped" : "") + (c.matched ? " matched" : "");
+        b.textContent = (c.matched || memFlip.includes(i)) ? c.e : "?";
+        b.onclick = () => memClick(i);
+        g.appendChild(b);
+      });
+    }
+    function memClick(i) {
+      if (memLock || memCards[i].matched || memFlip.includes(i)) return;
+      memFlip.push(i);
+      renderMem();
+      if (memFlip.length === 2) {
+        memLock = true;
+        const [a, b] = memFlip;
+        if (memCards[a].e === memCards[b].e) {
+          memCards[a].matched = memCards[b].matched = true;
+          memFlip = [];
+          memLock = false;
+          if (memCards.every((c) => c.matched)) document.getElementById("memStatus").textContent = "All matched! 🎉";
+          renderMem();
+        } else {
+          setTimeout(() => { memFlip = []; memLock = false; renderMem(); }, 600);
+        }
+      }
+    }
+
+    // ========== DRAFTS (simplified checkers) ==========
+    let draft, dSel, dTurn;
+    function initDrafts() {
+      document.getElementById("draftReset").onclick = resetDraft;
+      resetDraft();
+    }
+    function resetDraft() {
+      draft = Array.from({ length: 8 }, () => Array(8).fill(null));
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++) if ((r + c) % 2 === 1) draft[r][c] = "b";
+      for (let r = 5; r < 8; r++) for (let c = 0; c < 8; c++) if ((r + c) % 2 === 1) draft[r][c] = "r";
+      dSel = null; dTurn = "r";
+      document.getElementById("draftStatus").textContent = "Red to move";
+      renderDraft();
+    }
+    function renderDraft() {
+      const board = document.getElementById("draftBoard");
+      board.innerHTML = "";
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const sq = document.createElement("div");
+          sq.className = "draft-sq " + ((r + c) % 2 === 1 ? "dark" : "light");
+          if (dSel && dSel[0] === r && dSel[1] === c) sq.style.outline = "3px solid #0B0F3A";
+          const p = draft[r][c];
+          if (p) {
+            const el = document.createElement("div");
+            el.className = "piece " + (p.startsWith("r") ? "red" : "black") + (p.includes("k") ? " king" : "");
+            sq.appendChild(el);
+          }
+          sq.onclick = () => draftClick(r, c);
+          board.appendChild(sq);
+        }
+      }
+    }
+    function draftClick(r, c) {
+      if (dTurn !== "r") return;
+      const p = draft[r][c];
+      if (dSel) {
+        const [sr, sc] = dSel;
+        const piece = draft[sr][sc];
+        if (!piece || !piece.startsWith("r")) { dSel = null; renderDraft(); return; }
+        const dr = r - sr, dc = c - sc;
+        // simple move or jump
+        if (Math.abs(dr) === 1 && Math.abs(dc) === 1 && !draft[r][c] && (piece.includes("k") || dr < 0)) {
+          draft[r][c] = piece; draft[sr][sc] = null;
+          if (r === 0) draft[r][c] = "rk";
+          dTurn = "b";
+          document.getElementById("draftStatus").textContent = "Black thinking…";
+          dSel = null;
+          renderDraft();
+          setTimeout(draftAI, 400);
+          return;
+        }
+        if (Math.abs(dr) === 2 && Math.abs(dc) === 2) {
+          const mr = (r + sr) / 2, mc = (c + sc) / 2;
+          if (draft[mr][mc] && draft[mr][mc].startsWith("b") && !draft[r][c]) {
+            draft[r][c] = piece; draft[sr][sc] = null; draft[mr][mc] = null;
+            if (r === 0) draft[r][c] = "rk";
+            dTurn = "b";
+            document.getElementById("draftStatus").textContent = "Black thinking…";
+            dSel = null;
+            renderDraft();
+            setTimeout(draftAI, 400);
+            return;
+          }
+        }
+        dSel = null;
+        renderDraft();
+      } else if (p && p.startsWith("r")) {
+        dSel = [r, c];
+        renderDraft();
+      }
+    }
+    function draftAI() {
+      // random black move
+      const moves = [];
+      for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        const p = draft[r][c];
+        if (!p || !p.startsWith("b")) continue;
+        for (const [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
+          if (!p.includes("k") && dr < 0) continue;
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && !draft[nr][nc]) moves.push([r, c, nr, nc, null, null]);
+          const jr = r + 2 * dr, jc = c + 2 * dc, mr = r + dr, mc = c + dc;
+          if (jr >= 0 && jr < 8 && jc >= 0 && jc < 8 && !draft[jr][jc] && draft[mr]?.[mc]?.startsWith("r"))
+            moves.push([r, c, jr, jc, mr, mc]);
+        }
+      }
+      if (moves.length) {
+        const [sr, sc, tr, tc, mr, mc] = moves[Math.floor(Math.random() * moves.length)];
+        let piece = draft[sr][sc];
+        draft[tr][tc] = piece; draft[sr][sc] = null;
+        if (mr != null) draft[mr][mc] = null;
+        if (tr === 7) draft[tr][tc] = "bk";
+      }
+      dTurn = "r";
+      document.getElementById("draftStatus").textContent = "Red to move";
+      renderDraft();
+    }
+
+    // ========== BUS MISSION (Simon-style) ==========
+    const ROUTES = ["Holy Ghost", "Emene", "Gariki", "Abakpa", "Nsukka", "Udi"];
+    let missSeq = [], missPlayer = [], missLevel = 1, missPlaying = false;
+    function initMission() {
+      document.getElementById("missStart").onclick = startMission;
+      const grid = document.getElementById("missGrid");
+      grid.innerHTML = ROUTES.map((name, i) =>
+        `<button type="button" class="alarm-btn secondary" style="height:56px;font-size:13px" data-r="${i}">${name}</button>`
+      ).join("");
+      grid.querySelectorAll("button").forEach((b) => {
+        b.onclick = () => {
+          if (!missPlaying) return;
+          const i = +b.dataset.r;
+          flashBtn(b);
+          missPlayer.push(i);
+          const idx = missPlayer.length - 1;
+          if (missPlayer[idx] !== missSeq[idx]) {
+            document.getElementById("missStatus").textContent = "Wrong! Try again";
+            missPlaying = false;
+            return;
+          }
+          if (missPlayer.length === missSeq.length) {
+            missLevel++;
+            document.getElementById("missStatus").textContent = `Level ${missLevel} – Nice!`;
+            setTimeout(nextMissRound, 800);
+          }
+        };
+      });
+    }
+    function flashBtn(b) {
+      b.style.background = "var(--navy)";
+      b.style.color = "#fff";
+      setTimeout(() => { b.style.background = ""; b.style.color = ""; }, 280);
+    }
+    function startMission() {
+      missSeq = []; missLevel = 1;
+      document.getElementById("missStatus").textContent = "Level 1";
+      nextMissRound();
+    }
+    function nextMissRound() {
+      missPlayer = [];
+      missSeq.push(Math.floor(Math.random() * ROUTES.length));
+      missPlaying = false;
+      document.getElementById("missStatus").textContent = `Level ${missLevel} – Watch…`;
+      let i = 0;
+      const play = () => {
+        if (i >= missSeq.length) {
+          missPlaying = true;
+          document.getElementById("missStatus").textContent = `Level ${missLevel} – Your turn`;
+          return;
+        }
+        const btns = document.querySelectorAll("#missGrid button");
+        flashBtn(btns[missSeq[i]]);
+        i++;
+        setTimeout(play, 550);
+      };
+      setTimeout(play, 400);
+    }
+  </script>
+</body>
+</html>

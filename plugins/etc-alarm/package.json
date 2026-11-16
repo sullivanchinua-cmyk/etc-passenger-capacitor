@@ -1,0 +1,10 @@
+{
+  "name": "etc-alarm",
+  "version": "1.0.0",
+  "description": "Native Android alarms, reminders and background keep-alive for the ETC passenger app.",
+  "license": "UNLICENSED",
+  "private": true,
+  "files": ["android/src/main/", "android/build.gradle"],
+  "capacitor": { "android": { "src": "android" } },
+  "peerDependencies": { "@capacitor/core": ">=7.0.0" }
+}

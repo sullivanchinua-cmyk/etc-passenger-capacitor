@@ -1,0 +1,19 @@
+{
+  "appId": "enugubustransit.com",
+  "appName": "Enugu Smart Bus",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css"
+    },
+    "LocalNotifications": {
+      "iconColor": "#1A237E"
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}
