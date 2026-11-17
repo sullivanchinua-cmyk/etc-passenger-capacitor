@@ -609,6 +609,16 @@ function _openContactPicker() {
   window._ctLoadPhone = function(){
     var list=document.getElementById('_ctList');
     if(list)list.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:16px"><div style="width:56px;height:56px;border-radius:50%;border:3px solid #0B0F3A;border-top:3px solid transparent;animation:spin .8s linear infinite"></div><p style="color:#6B7280;font-size:14px;font-weight:600;margin:0">Requesting permission...</p></div>';
+    /* Android app: read the phone book through the native DeviceFiles plugin (asks for READ_CONTACTS) */
+    if(window.EtcNative&&window.EtcNative.isNative&&window.EtcNative.listContacts){
+      window.EtcNative.listContacts().then(function(rows){
+        _phoneContacts=(rows||[]).filter(function(c){return c&&(c.name||(c.phones&&c.phones.length));}).map(function(c){
+          return{name:c.name||(c.phones&&c.phones[0])||'Unknown',phone:(c.phones&&c.phones[0])||'',email:(c.emails&&c.emails[0])||''};
+        }).sort(function(a,b){return String(a.name).localeCompare(String(b.name));});
+        _phoneLoaded=_phoneContacts.length>0; _renderList(_phoneContacts);
+      }).catch(function(){_phoneLoaded=false;_phoneContacts=[];_renderList([]);});
+      return;
+    }
     /* Web Contacts API fallback */
     if(navigator.contacts&&navigator.contacts.select){
       navigator.contacts.select(['name','tel','email'],{multiple:true})

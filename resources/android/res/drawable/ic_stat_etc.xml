@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- white bus silhouette: Android only draws the alpha of a status-bar / notification small icon -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M6,2 h12 a2,2 0 0 1 2,2 v14 a1,1 0 0 1 -1,1 h-1 v1 a1,1 0 0 1 -1,1 h-1 a1,1 0 0 1 -1,-1 v-1 h-6 v1 a1,1 0 0 1 -1,1 h-1 a1,1 0 0 1 -1,-1 v-1 h-1 a1,1 0 0 1 -1,-1 V4 a2,2 0 0 1 2,-2 z M6,5 h12 v6 h-12 z M6.5,15 a1.25,1.25 0 1 0 2.5,0 a1.25,1.25 0 1 0 -2.5,0 z M15,15 a1.25,1.25 0 1 0 2.5,0 a1.25,1.25 0 1 0 -2.5,0 z" />
+</vector>

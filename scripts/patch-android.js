@@ -49,6 +49,39 @@ if (!xml.includes(channelMeta)) {
     '    <meta-data android:name="' + channelMeta + '" android:value="messages" />\n    </application>');
 }
 
+// notification icon for Firebase pushes (white bus silhouette from resources/android/res/drawable)
+const fcmIcon = 'com.google.firebase.messaging.default_notification_icon';
+if (!xml.includes(fcmIcon)) {
+  xml = xml.replace('</application>',
+    '    <meta-data android:name="' + fcmIcon + '" android:resource="@drawable/ic_stat_etc" />\n    </application>');
+}
+
+// shared ticket links: https://<SHARE_BASE_URL host>/ticket.html (App Link) and etcbus://ticket
+if (!xml.includes('android:scheme="etcbus"')) {
+  let host = '';
+  try {
+    const cfgJs = fs.readFileSync(path.join(__dirname, '..', 'www', 'native', 'config.js'), 'utf8');
+    const m = /SHARE_BASE_URL:\s*['"]https?:\/\/([^\/'"]+)/.exec(cfgJs);
+    if (m) host = m[1];
+  } catch (e) {}
+  let filters = '        <intent-filter>\n' +
+    '            <action android:name="android.intent.action.VIEW" />\n' +
+    '            <category android:name="android.intent.category.DEFAULT" />\n' +
+    '            <category android:name="android.intent.category.BROWSABLE" />\n' +
+    '            <data android:scheme="etcbus" />\n' +
+    '        </intent-filter>\n';
+  if (host) {
+    filters += '        <intent-filter android:autoVerify="true">\n' +
+      '            <action android:name="android.intent.action.VIEW" />\n' +
+      '            <category android:name="android.intent.category.DEFAULT" />\n' +
+      '            <category android:name="android.intent.category.BROWSABLE" />\n' +
+      '            <data android:scheme="https" android:host="' + host + '" android:pathPrefix="/ticket.html" />\n' +
+      '        </intent-filter>\n';
+  }
+  xml = xml.replace('</activity>', filters + '    </activity>');
+  console.log('Ticket link filters added (' + (host ? 'https://' + host + '/ticket.html + etcbus://' : 'etcbus:// only - SHARE_BASE_URL not found') + ').');
+}
+
 fs.writeFileSync(manifestPath, xml);
 console.log('AndroidManifest.xml patched (' + add.length + ' entries added' + (playStore ? ', Play Store mode' : '') + ').');
 

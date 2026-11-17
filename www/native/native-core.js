@@ -69,6 +69,13 @@
       });
     },
 
+    /** Android share sheet (WhatsApp etc.) - the WebView has no navigator.share. */
+    shareText: function (text, title) {
+      var df = N.deviceFiles();
+      if (!df || !df.shareText) return Promise.reject(new Error('native share missing'));
+      return df.shareText({ text: text, title: title || 'Share' });
+    },
+
     /** Called when the app returns to the foreground (e.g. back from Settings). */
     onResume: function (fn) {
       var app = plugin('App');
@@ -112,8 +119,34 @@
   if (isNative && (window.ETC_CONFIG || {}).SAFE_AREA_PADDING) {
     var st = document.createElement('style');
     st.textContent = 'html body{box-sizing:border-box;padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));' +
-      'padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}';
+      'padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));' +
+      'padding-left:var(--safe-area-inset-left,env(safe-area-inset-left,0px));' +
+      'padding-right:var(--safe-area-inset-right,env(safe-area-inset-right,0px))}';
     document.head.appendChild(st);
+  }
+
+  // ---- Deep links: shared ticket links open the app and register the ticket ---------------
+  //   https://<SHARE_BASE_URL host>/ticket.html#d=...   (Android App Link)
+  //   etcbus://ticket#d=...                            (fallback / "Open in app" button)
+  if (isNative) {
+    var dlApp = plugin('App');
+    var openLink = function (url) {
+      if (!url) return;
+      var i = String(url).indexOf('#d=');
+      if (i < 0) return;
+      var root = (window.ETC_CONFIG && window.ETC_CONFIG.ROOT_URL) || '/';
+      location.href = root + 'ticket.html' + String(url).slice(i);
+    };
+    if (dlApp && dlApp.addListener) {
+      dlApp.addListener('appUrlOpen', function (e) { openLink(e && e.url); });
+    }
+    if (dlApp && dlApp.getLaunchUrl) {
+      dlApp.getLaunchUrl().then(function (r) {
+        var u = r && r.url; if (!u) return;
+        try { if (sessionStorage.getItem('etc_launch_url') === u) return; sessionStorage.setItem('etc_launch_url', u); } catch (e) {}
+        openLink(u);
+      }).catch(function () {});
+    }
   }
 
   window.EtcNative = N;

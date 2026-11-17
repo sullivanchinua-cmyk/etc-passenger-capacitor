@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 
 /** Notification channels + helper used by the alarm receiver and services. */
@@ -72,6 +73,27 @@ final class EtcNotifier {
     }
 
     @SuppressWarnings("deprecation")
+    /** white bus silhouette (resources/android/res/drawable/ic_stat_etc.xml); falls back to the given system icon */
+    static int smallIcon(Context c, int fallback) {
+        int id = c.getResources().getIdentifier("ic_stat_etc", "drawable", c.getPackageName());
+        return id != 0 ? id : fallback;
+    }
+
+    /** full-colour app icon as the large icon + brand colour */
+    static Notification.Builder brand(Context c, Notification.Builder b) {
+        try {
+            int id = c.getResources().getIdentifier("etc_large_icon", "drawable", c.getPackageName());
+            if (id != 0) {
+                b.setLargeIcon(BitmapFactory.decodeResource(c.getResources(), id));
+            }
+            if (Build.VERSION.SDK_INT >= 21) {
+                b.setColor(0xFF1A237E);
+            }
+        } catch (Throwable ignored) {
+        }
+        return b;
+    }
+
     static Notification.Builder builder(Context c, String channel) {
         if (Build.VERSION.SDK_INT >= 26) {
             return new Notification.Builder(c, channel);
@@ -84,12 +106,13 @@ final class EtcNotifier {
     static void postReminder(Context c, int id, String title, String body, String route) {
         ensureChannels(c);
         Notification.Builder b = builder(c, CH_REMINDER)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(smallIcon(c, android.R.drawable.ic_lock_idle_alarm))
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(new Notification.BigTextStyle().bigText(body))
             .setAutoCancel(true)
             .setContentIntent(openApp(c, route, id));
+        brand(c, b);
         if (Build.VERSION.SDK_INT >= 21) {
             b.setCategory(Notification.CATEGORY_REMINDER).setVisibility(Notification.VISIBILITY_PUBLIC);
         }

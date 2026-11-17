@@ -20,13 +20,20 @@
     PUSH_MODE: 'local',
     NOTIFICATION_CHANNEL: 'messages',
 
+    // ---- Ticket share links ----------------------------------------------
+    // Public https address of the web version of this app (the Netlify site).
+    // Shared ticket links point here, so they open in a browser for people without the app
+    // and open the app directly (Android App Links) for people who have it.
+    // Also used by `npm run android:patch` to register the link in AndroidManifest.xml.
+    SHARE_BASE_URL: 'https://enugusmartbusbookticket.netlify.app',
+
     // ---- Storage ----------------------------------------------------------
     SQLITE_ENABLED: true,
     SQLITE_DB_NAME: 'etc_chat_messages',
     MAX_MSGS_PER_ROOM: 500,
 
     // Turn on if the page header is hidden behind the Android status bar.
-    SAFE_AREA_PADDING: false,
+    SAFE_AREA_PADDING: true,
 
     // ---- Attach pickers ---------------------------------------------------
     // true : the Document picker asks for "All files access" so it can list

@@ -23,11 +23,12 @@ public class EtcKeepAliveService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         EtcNotifier.ensureChannels(this);
         Notification.Builder b = EtcNotifier.builder(this, EtcNotifier.CH_KEEPALIVE)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(EtcNotifier.smallIcon(this, android.R.drawable.ic_dialog_info))
             .setContentTitle("ETC is on")
             .setContentText("Listening for tickets, chat and alarms")
             .setOngoing(true)
             .setContentIntent(EtcNotifier.openApp(this, "", 21));
+        EtcNotifier.brand(this, b);
         if (Build.VERSION.SDK_INT >= 21) {
             b.setCategory(Notification.CATEGORY_SERVICE);
         }

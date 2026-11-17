@@ -57,3 +57,12 @@ Firestore rule for tokens (collection `etc_rtdb_fcm_tokens`): `allow write: if r
 3. Notification small icon is the app icon; add a white-on-transparent icon later for a cleaner status bar.
 4. Not run on a real phone yet (no Android SDK here). Java was compile-checked against stubs; the JavaScript, SQLite logic, setup screen and
    notification/alarm bridges were tested with simulated plugins. Test an alarm with the "Test alarm" button, then report anything odd.
+
+## Fixes round 2
+* **Safe area**: `SAFE_AREA_PADDING: true` in `www/native/config.js` (pages no longer sit under the status / navigation bar).
+* **Phone contacts** in the chat attach menu come from the native DeviceFiles plugin (asks for the Contacts permission).
+* **Notification icon**: white bus silhouette (`resources/android/res/drawable/ic_stat_etc.xml`) + full-colour app icon as large icon.
+* **Receipt**: Copy buttons for the payment ref and the ticket ref.
+* **Ticket links**: `SHARE_BASE_URL` in `www/native/config.js` is the public web address. Links look like `<SHARE_BASE_URL>/ticket.html#d=...`.
+  `npm run android:patch` registers that host (App Link) and `etcbus://` in the manifest. Deploy `www/.well-known/assetlinks.json` with the site.
+  It holds the fingerprint of `resources/debug.keystore` (the workflow signs debug builds with it). A release keystore needs its own fingerprint added there.

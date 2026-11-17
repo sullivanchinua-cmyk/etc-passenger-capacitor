@@ -165,6 +165,7 @@
     return LN.schedule({
       notifications: [{
         id: o.id, title: o.title || 'ETC', body: o.body || '',
+        smallIcon: 'ic_stat_etc', largeIcon: 'etc_large_icon',
         channelId: o.channelId || CH.alerts, group: o.group, extra: o.extra || {}
       }]
     }).catch(function (e) { console.warn('[notify]', e && e.message || e); });
@@ -317,11 +318,11 @@
         var route = 'ticket.html?id=' + encodeURIComponent(t.id);
         var where = (t.fromLabel || t.from || '') + (t.to ? ' → ' + (t.toLabel || t.to) : '');
         if (dep - 3600000 > now + 30000) {
-          notes.push({ id: idRem, title: '🚌 Your bus leaves in 1 hour', body: (where ? where + ' · ' : '') + (t.time || '') + (t.seat ? ' · Seat ' + t.seat : ''),
+          notes.push({ smallIcon: 'ic_stat_etc', largeIcon: 'etc_large_icon', id: idRem, title: '🚌 Your bus leaves in 1 hour', body: (where ? where + ' · ' : '') + (t.time || '') + (t.seat ? ' · Seat ' + t.seat : ''),
             channelId: CH.tickets, extra: { route: route, type: 'ticket' }, schedule: { at: new Date(dep - 3600000), allowWhileIdle: true } });
         }
         if (dep + 300000 > now + 30000 && dep < now + 7 * 86400000) {
-          notes.push({ id: idLate, title: '⏰ Running late?', body: 'Your bus left at ' + (t.time || '') + '. Tap to reschedule while your seat is held.',
+          notes.push({ smallIcon: 'ic_stat_etc', largeIcon: 'etc_large_icon', id: idLate, title: '⏰ Running late?', body: 'Your bus left at ' + (t.time || '') + '. Tap to reschedule while your seat is held.',
             channelId: CH.tickets, extra: { route: 'events.html?reschedule=' + encodeURIComponent(t.id), type: 'ticket' }, schedule: { at: new Date(dep + 300000), allowWhileIdle: true } });
         }
       });

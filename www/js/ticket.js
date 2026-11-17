@@ -335,6 +335,20 @@
     }, 700);
   }
 
+  function copyBtn(v) {
+    if (!v) return "";
+    return `<button type="button" class="rc-copy" data-copy="${esc(String(v))}" aria-label="Copy code"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span>Copy</span></button>`;
+  }
+  async function copyText(v) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(v); return true; } } catch (_) {}
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = v; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, v.length);
+      const ok = document.execCommand("copy"); ta.remove(); return ok;
+    } catch (_) { return false; }
+  }
+
   function renderReceipt() {
     // Resolve the one passenger currently being viewed
     const paramsId = (function(){ try { return new URLSearchParams(location.search).get("id"); } catch(_){ return null; } })();
@@ -396,7 +410,7 @@
       total
     )}</p></div>
       <div class="rc-rows">
-        <div><span>Payment ref</span><b class="mono">${esc(t0.reference)}</b></div>
+        <div><span>Payment ref</span><b class="mono">${esc(t0.reference)}</b>${copyBtn(t0.reference)}</div>
         <div><span>Paid on</span><b>${esc(paid)}</b></div>
         <div><span>Paid with</span><b>${esc(methodName)}</b></div>
         <div><span>Route</span><b>${esc(t0.from)} → ${esc(t0.to)}</b></div>
@@ -428,7 +442,7 @@
       </div>
       <p class="tk-note" style="margin-top:14px">${mergedView
       ? "Group ref (boards all remaining — show at gate if phone is off): "
-      : "Ticket ref (show at gate if phone is off): "}<b class="mono">${esc(helpRef)}</b></p>
+      : "Ticket ref (show at gate if phone is off): "}<b class="mono">${esc(helpRef)}</b> ${copyBtn(helpRef)}</p>
     </div>`;
   }
 
@@ -509,12 +523,20 @@
       location.href = go.dataset.go === "events" ? "events.html" : "index.html";
       return;
     }
+    const cp = e.target.closest("[data-copy]");
+    if (cp) {
+      const ok = await copyText(cp.dataset.copy);
+      UI.toast(ok ? "Code copied" : "Couldn’t copy – press and hold the code instead");
+      if (ok) { const lab = cp.querySelector("span"); if (lab) { lab.textContent = "Copied"; cp.classList.add("done"); setTimeout(function () { lab.textContent = "Copy"; cp.classList.remove("done"); }, 1600); } }
+      return;
+    }
     const rc = e.target.closest("[data-recpt]");
     if (rc) return setTab("receipt");
     const all = e.target.closest("[data-share-all]");
     if (all) {
       const text = list.map((t) => `${nm(t)}: ${TK.shareLink(t)}`).join("\n");
       try {
+        if (window.EtcNative && window.EtcNative.isNative && window.EtcNative.shareText) { await window.EtcNative.shareText("Your ETC boarding links:\n" + text, "ETC tickets"); return; }
         if (navigator.share) await navigator.share({ title: "ETC tickets", text: "Your ETC boarding links:\n" + text });
         else {
           await navigator.clipboard.writeText(text);
@@ -540,6 +562,7 @@
       url,
     };
     try {
+      if (window.EtcNative && window.EtcNative.isNative && window.EtcNative.shareText) { await window.EtcNative.shareText(data.text + "\n" + url, data.title); return; }
       if (navigator.share) await navigator.share(data);
       else {
         await navigator.clipboard.writeText(url);
@@ -565,6 +588,21 @@
       el.classList.toggle("low", sec <= 5);
     });
   });
+
+  // Someone opened a shared ticket link in a browser on Android: offer to continue in the app
+  (function openInAppBanner() {
+    try {
+      if (window.EtcNative && window.EtcNative.isNative) return;
+      const h = location.hash || "";
+      if (h.indexOf("d=") < 0 || !/Android/i.test(navigator.userAgent)) return;
+      const intent = "intent://ticket" + h + "#Intent;scheme=etcbus;package=enugubustransit.com;S.browser_fallback_url=" + encodeURIComponent(location.href) + ";end";
+      const bar = document.createElement("div");
+      bar.className = "tk-openapp";
+      bar.innerHTML = `<span>Open this ticket in the ETC app</span><a href="${intent}">Open app</a><button type="button" aria-label="Close">×</button>`;
+      bar.querySelector("button").onclick = function () { bar.remove(); };
+      document.body.appendChild(bar);
+    } catch (_) {}
+  })();
 
   (async function init() {
     const q = new URLSearchParams(location.search);

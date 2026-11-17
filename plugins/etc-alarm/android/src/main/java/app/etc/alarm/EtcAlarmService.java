@@ -104,7 +104,7 @@ public class EtcAlarmService extends Service {
         PendingIntent fullScreen = PendingIntent.getActivity(this, 11, ui, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Notification.Builder b = EtcNotifier.builder(this, EtcNotifier.CH_ALARM)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(EtcNotifier.smallIcon(this, android.R.drawable.ic_lock_idle_alarm))
             .setContentTitle(curTitle)
             .setContentText(curBody.length() > 0 ? curBody : "Alarm")
             .setOngoing(true)
@@ -113,6 +113,7 @@ public class EtcAlarmService extends Service {
             .setFullScreenIntent(fullScreen, true)
             .addAction(new Notification.Action.Builder(null, "Snooze 5 min", action(ACTION_SNOOZE, 12)).build())
             .addAction(new Notification.Action.Builder(null, "Dismiss", action(ACTION_STOP, 13)).build());
+        EtcNotifier.brand(this, b);
         if (Build.VERSION.SDK_INT >= 21) {
             b.setCategory(Notification.CATEGORY_ALARM).setVisibility(Notification.VISIBILITY_PUBLIC);
         }

@@ -10,10 +10,15 @@
       "insetsHandling": "css"
     },
     "LocalNotifications": {
-      "iconColor": "#1A237E"
+      "iconColor": "#1A237E",
+      "smallIcon": "ic_stat_etc"
     },
     "PushNotifications": {
-      "presentationOptions": ["badge", "sound", "alert"]
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
     }
   }
 }

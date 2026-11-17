@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "enugubustransit.com",
+      "sha256_cert_fingerprints": ["B8:CE:09:3E:B4:24:4A:B4:84:E2:93:84:66:82:44:63:78:35:09:4D:1B:2C:91:46:06:FB:B7:AD:4F:A6:19:7D"]
+    }
+  }
+]

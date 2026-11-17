@@ -737,6 +737,25 @@ public class DeviceFilesPlugin extends Plugin {
         }
     }
 
+    // ------------------------------------------------------------------ share sheet
+
+    @PluginMethod
+    public void shareText(final PluginCall call) {
+        try {
+            String text = call.getString("text", "");
+            String title = call.getString("title", "Share");
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_TEXT, text);
+            Intent chooser = Intent.createChooser(send, title);
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(chooser);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("shareText failed: " + e.getMessage());
+        }
+    }
+
     // ------------------------------------------------------------------ contacts
 
     @PluginMethod

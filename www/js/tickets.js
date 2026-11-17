@@ -423,7 +423,11 @@ window.ETC_Tickets = (function () {
   const b64 = (s) => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   const unb64 = (s) => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
   function shareLink(t) {
-    const base = location.href.replace(/[^/]*([?#].*)?$/, "") + "ticket.html";
+    // In the Android app the page lives on https://localhost, which nobody else can open:
+    // point the link at the public web address instead (App Links bring it back into the app).
+    const cfg = window.ETC_CONFIG && window.ETC_CONFIG.SHARE_BASE_URL;
+    const inApp = window.EtcNative && window.EtcNative.isNative;
+    const base = (inApp && cfg ? String(cfg).replace(/\/+$/, "") + "/" : location.href.replace(/[^/]*([?#].*)?$/, "")) + "ticket.html";
     const pay = Object.assign({}, t, { shared: true });
     delete pay.email;
     return `${base}#d=${b64(JSON.stringify(pay))}`;
