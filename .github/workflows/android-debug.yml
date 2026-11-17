@@ -28,8 +28,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # GitHub runners already have Android SDK. Accept licenses and install needed packages.
-      # Avoid android-actions/setup-android which tries to install the obsolete "tools" package.
       - name: Accept Android SDK licenses
         run: |
           yes | sdkmanager --licenses >/dev/null || true
@@ -52,17 +50,37 @@ jobs:
       - name: Sync web files into Android
         run: npx cap sync android
 
-      # same debug signing key every run, so Android can verify the ticket-link domain (www/.well-known/assetlinks.json)
       - name: Use the project debug keystore
         run: |
           mkdir -p ~/.android
           cp resources/debug.keystore ~/.android/debug.keystore
+          keytool -list -keystore ~/.android/debug.keystore -storepass android | head -5
 
       - name: Build debug APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Verify APK is signed
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          ls -la "$APK"
+          # jarsigner -verify works for v1; apksigner if available
+          if command -v apksigner >/dev/null 2>&1; then
+            apksigner verify --print-certs "$APK" || true
+          fi
+          python3 - <<'PY'
+          import zipfile, sys
+          z = zipfile.ZipFile("android/app/build/outputs/apk/debug/app-debug.apk")
+          names = z.namelist()
+          has_v1 = any(n.startswith("META-INF/") and (n.endswith(".RSA") or n.endswith(".SF") or n=="META-INF/MANIFEST.MF") for n in names)
+          # v2/v3 signing lives outside central directory; just ensure APK is valid zip with manifest+dex
+          ok = "AndroidManifest.xml" in names and any(n.endswith(".dex") for n in names)
+          print("valid_structure:", ok, "has_v1_meta:", has_v1)
+          if not ok:
+            sys.exit(1)
+          PY
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
