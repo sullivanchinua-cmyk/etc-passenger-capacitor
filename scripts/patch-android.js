@@ -161,22 +161,21 @@ if (fs.existsSync(gs) && fs.existsSync(rootGradle) && fs.existsSync(appGradle)) 
 }
 
 
-// Force debug signing (v1 + v2) so the APK installs on all devices
+
+// Ensure debug keystore path is explicit (default passwords already match our keystore)
 const appGradlePath2 = path.join(appDir, 'build.gradle');
 if (fs.existsSync(appGradlePath2)) {
   let ag = fs.readFileSync(appGradlePath2, 'utf8');
   if (!ag.includes('ETC_DEBUG_SIGNING')) {
     ag += `
-// ETC_DEBUG_SIGNING
+// ETC_DEBUG_SIGNING - point debug build at the CI keystore copied to ~/.android/debug.keystore
 android.signingConfigs.debug.storeFile = file(System.properties['user.home'] + '/.android/debug.keystore')
 android.signingConfigs.debug.storePassword = 'android'
 android.signingConfigs.debug.keyAlias = 'androiddebugkey'
 android.signingConfigs.debug.keyPassword = 'android'
 android.buildTypes.debug.signingConfig = android.signingConfigs.debug
-android.buildTypes.debug.v1SigningEnabled = true
-android.buildTypes.debug.v2SigningEnabled = true
 `
     fs.writeFileSync(appGradlePath2, ag);
-    console.log('Forced debug v1+v2 signing in android/app/build.gradle.');
+    console.log('Forced debug signingConfig to use project keystore.');
   }
 }
