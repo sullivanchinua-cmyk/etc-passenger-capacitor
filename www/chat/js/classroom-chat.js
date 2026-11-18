@@ -28,7 +28,7 @@ function getChatsContent() {
                       '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0F3A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
                     '</button>' +
                    '</div>' +
-                   '<div id="chatInputBar" style="position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.7);border-radius:22px 22px 0 0;box-shadow:0 -12px 32px rgba(17,17,18,.1);padding-bottom:env(safe-area-inset-bottom,0px)">' +
+                   '<div id="chatInputBar" style="position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.7);border-radius:22px 22px 0 0;box-shadow:0 -12px 32px rgba(17,17,18,.1);padding-bottom:var(--sab, 0px)">' +
                    /* WhatsApp-style reply bar for classroom */
                    '<div id="pubReplyBar" style="display:none;background:rgba(255,255,255,.5);border-bottom:1px solid rgba(11,15,58,.06);padding:6px 12px">' +
                      '<div style="display:flex;align-items:center;gap:10px;background:#1f2c34;border-radius:10px;border-left:4px solid #25d366;padding:8px 10px;min-height:44px">' +
@@ -304,7 +304,7 @@ function showClassroomSearch() {
         
 function showClassroomInfo() {
           var d = document.createElement('div');
-          d.style.cssText = 'position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.75);display:flex;flex-direction:column;overflow-y:auto';
+          d.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9900;background:rgba(0,0,0,.75);display:flex;flex-direction:column;overflow-y:auto';
           var memberCount = 0;
           db.ref('users').once('value').then(function(s){ memberCount = s.numChildren ? s.numChildren() : (Object.keys(s.val()||{}).length); });
           d.innerHTML =
@@ -348,7 +348,7 @@ async function showClassMediaDocs() {
           try { light = (localStorage.getItem('etc_ui_mode') || 'light') !== 'dark'; } catch(e) {}
           var d = document.createElement('div');
           d.className = 'etc-media-sheet';
-          d.style.cssText = 'position:fixed;inset:0;z-index:9900;display:flex;flex-direction:column;background:' + (light ? 'linear-gradient(180deg,#D2D3D6,#DCDDE0)' : '#0d1117');
+          d.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9900;display:flex;flex-direction:column;background:' + (light ? 'linear-gradient(180deg,#D2D3D6,#DCDDE0)' : '#0d1117');
           d.innerHTML =
             '<div class="etc-media-head" style="padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-radius:0 0 18px 18px;background:' + (light ? 'rgba(255,255,255,.92)' : '#1a1f2e') + ';border-bottom:1px solid ' + (light ? 'rgba(17,17,18,.08)' : '#2a3942') + ';box-shadow:' + (light ? '0 8px 24px rgba(17,17,18,.08)' : 'none') + '">' +
               '<button onclick="this.closest(\'[style*=position:fixed]\').remove()" style="width:40px;height:40px;background:' + (light ? 'rgba(11,15,58,.08)' : '#2a3942') + ';border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">' +

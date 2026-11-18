@@ -56,12 +56,49 @@ if (!xml.includes(fcmIcon)) {
     '    <meta-data android:name="' + fcmIcon + '" android:resource="@drawable/ic_stat_etc" />\n    </application>');
 }
 
-// NOTE: a direct "tap link -> jump into app" intent-filter was tried here and reverted:
-// added to the launcher activity (default launchMode, not singleTask), it could spawn a
-// second Activity/WebView instance on top of the running one, which matches the open/close
-// flicker reported after buying a ticket. Links still work as plain web links
-// (shareLink() in www/js/tickets.js points at SHARE_BASE_URL); re-add only with
-// android:launchMode="singleTask" and onNewIntent handling, tested on a real device first.
+// ---------------------------------------------------------------------------
+// Ticket links open the app (like a TikTok link)
+//   https://<SHARE_BASE_URL host>/ticket.html#d=...   -> Android App Link (autoVerify)
+//   etcbus://ticket?d=...                              -> fallback scheme ("Open in ETC app" button on the web page)
+// MainActivity MUST be launchMode="singleTask": a tapped link then reuses the running app instead of
+// stacking a second Activity/WebView on top (that was the open/close flicker of the earlier attempt).
+// www/native/deeplink.js receives the link (Capacitor appUrlOpen / getLaunchUrl) and opens the ticket.
+// ---------------------------------------------------------------------------
+(function () {
+  let host = '';
+  try {
+    const cfgSrc = fs.readFileSync(path.join(__dirname, '..', 'www', 'native', 'config.js'), 'utf8');
+    const m = /SHARE_BASE_URL:\s*['"]([^'"]+)['"]/.exec(cfgSrc);
+    if (m) host = new URL(m[1]).host;
+  } catch (e) {}
+  const am = /<activity\b[^>]*android:name="[^"]*MainActivity"[^>]*>/.exec(xml);
+  if (!am) { console.warn('MainActivity not found in AndroidManifest.xml - ticket links NOT registered.'); return; }
+  let tag = am[0];
+  if (/android:launchMode="[^"]*"/.test(tag)) tag = tag.replace(/android:launchMode="[^"]*"/, 'android:launchMode="singleTask"');
+  else tag = tag.replace('<activity', '<activity android:launchMode="singleTask"');
+  xml = xml.replace(am[0], tag);
+  if (xml.includes('android:scheme="etcbus"')) return;
+  const filters =
+    (host
+      ? '\n            <intent-filter android:autoVerify="true">\n' +
+        '                <action android:name="android.intent.action.VIEW" />\n' +
+        '                <category android:name="android.intent.category.DEFAULT" />\n' +
+        '                <category android:name="android.intent.category.BROWSABLE" />\n' +
+        '                <data android:scheme="https" android:host="' + host + '" android:pathPrefix="/ticket.html" />\n' +
+        '            </intent-filter>'
+      : '') +
+    '\n            <intent-filter>\n' +
+    '                <action android:name="android.intent.action.VIEW" />\n' +
+    '                <category android:name="android.intent.category.DEFAULT" />\n' +
+    '                <category android:name="android.intent.category.BROWSABLE" />\n' +
+    '                <data android:scheme="etcbus" />\n' +
+    '            </intent-filter>\n        ';
+  const start = xml.indexOf(tag);
+  const end = xml.indexOf('</activity>', start);
+  if (end < 0) return;
+  xml = xml.slice(0, end) + filters + xml.slice(end);
+  console.log('Ticket links registered' + (host ? ' for https://' + host + '/ticket.html' : '') + ' + etcbus://');
+})();
 
 fs.writeFileSync(manifestPath, xml);
 console.log('AndroidManifest.xml patched (' + add.length + ' entries added' + (playStore ? ', Play Store mode' : '') + ').');

@@ -952,7 +952,7 @@ function editPubMsg(msgId, currentText, editPath) {
 
   var pg = document.createElement('div');
   pg.id = '_editFullPage';
-  pg.style.cssText = 'position:fixed;inset:0;z-index:9995;background:#0d1117;display:flex;flex-direction:column;font-family:-apple-system,sans-serif;animation:_editPageIn .25s cubic-bezier(.25,.46,.45,.94) both';
+  pg.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9995;background:#0d1117;display:flex;flex-direction:column;font-family:-apple-system,sans-serif;animation:_editPageIn .25s cubic-bezier(.25,.46,.45,.94) both';
 
   pg.innerHTML =
     // Header bar — like WhatsApp
@@ -970,7 +970,7 @@ function editPubMsg(msgId, currentText, editPath) {
       '</div>' +
     '</div>' +
     // Input row at bottom — WhatsApp style
-    '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #1f2937;background:#111827;flex-shrink:0">' +
+    '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px calc(10px + var(--sab, 0px));border-top:1px solid #1f2937;background:#111827;flex-shrink:0">' +
       '<input id="_editPageInput" type="text" style="flex:1;background:#1f2937;border:none;border-radius:24px;padding:12px 18px;color:#fff;font-size:15px;outline:none;caret-color:#0B0F3A;font-family:inherit" placeholder="Edit message…">' +
       '<button id="_editPageSend" onclick="_commitEditPubMsg()" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#0B0F3A,#1a237e);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(11,15,58,.4);flex-shrink:0">' +
         '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
@@ -1089,7 +1089,7 @@ function showForwardPicker(text, msgId, fileUrl, fileType) {
   ov.id = '_fwdPickerOv';
   ov.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center';
   ov.innerHTML =
-    '<div style="width:100%;max-width:520px;background:#1a1f2e;border-radius:24px 24px 0 0;display:flex;flex-direction:column;max-height:80vh;padding-bottom:env(safe-area-inset-bottom);animation:sheetUp .22s cubic-bezier(.4,0,.2,1)">'+
+    '<div style="width:100%;max-width:520px;background:#1a1f2e;border-radius:24px 24px 0 0;display:flex;flex-direction:column;max-height:80vh;padding-bottom:var(--sab, 0px);animation:sheetUp .22s cubic-bezier(.4,0,.2,1)">'+
       '<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;background:#374151;border-radius:2px"></div></div>'+
       '<div style="padding:14px 20px 10px;border-bottom:1px solid #374151">'+
         '<p style="color:#fff;font-weight:700;font-size:17px;margin:0 0 4px">Forward to…</p>'+
@@ -3426,7 +3426,7 @@ function showFilePreview(file, onSend) {
   var isVid = file.type.startsWith('video/');
   var ov = document.createElement('div');
   ov.id = 'filePreviewOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:#111;display:flex;flex-direction:column;font-family:-apple-system,sans-serif;overscroll-behavior:none';
+  ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:99990;background:#111;display:flex;flex-direction:column;font-family:-apple-system,sans-serif;overscroll-behavior:none';
 
   /* ─── Top toolbar ─── */
   var toolbar = document.createElement('div');

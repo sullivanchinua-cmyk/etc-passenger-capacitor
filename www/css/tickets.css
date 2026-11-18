@@ -148,3 +148,8 @@
 .rc-copy.done { background: #16A96A; border-color: #16A96A; color: #fff; }
 .rc-rows > div:has(.rc-copy) b.mono { margin-left: auto; }
 
+
+/* receipt: ticket ref + Copy button on its own line (always visible, easy to tap) */
+.rc-refline { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 6px 0 2px; }
+.rc-refline b.mono { font-size: 13px; letter-spacing: .02em; word-break: break-all; user-select: text; -webkit-user-select: text; }
+.rc-refline .rc-copy { margin-left: 0; padding: 8px 14px; font-size: 13px; }

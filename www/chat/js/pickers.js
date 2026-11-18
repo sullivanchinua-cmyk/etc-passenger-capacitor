@@ -372,7 +372,7 @@
 
     var ov = document.createElement('div');
     ov.id = '_aAudUI';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:9850;background:' + P.bg + ';display:flex;flex-direction:column;font-family:inherit;color:' + P.txt;
+    ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9850;background:' + P.bg + ';display:flex;flex-direction:column;font-family:inherit;color:' + P.txt;
     ov.innerHTML = headerHTML(P, 'Send to ~ Audio', 'Tap to select', 'Search audio') + '<div id="_pkBanner"></div><div id="_pkList" style="flex:1;overflow-y:auto"></div>';
 
     var player = null, playingId = null;
@@ -539,7 +539,7 @@
 
     var ov = document.createElement('div');
     ov.id = '_aDocUI';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:9850;background:' + P.bg + ';display:flex;flex-direction:column;font-family:inherit;color:' + P.txt;
+    ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9850;background:' + P.bg + ';display:flex;flex-direction:column;font-family:inherit;color:' + P.txt;
     ov.innerHTML = headerHTML(P, chatTitle(), 'Send a document', 'Search') +
       '<div id="_pkBanner"></div>' +
       '<div id="_pkTabs" style="display:flex;background:' + P.tabBar + ';border-bottom:1px solid ' + P.line + ';flex-shrink:0"></div>' +

@@ -135,7 +135,7 @@ function _openCameraWebRTC() {
 
   var ov = document.createElement('div');
   ov.id = '_camOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9900;background:#000;display:flex;flex-direction:column';
+  ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9900;background:#000;display:flex;flex-direction:column';
 
   ov.innerHTML =
     '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;position:absolute;top:0;left:0;right:0;z-index:10">' +
@@ -412,7 +412,7 @@ function _openCameraWebRTC() {
 function _openLocationUI() {
   var d = document.createElement('div');
   d.id = '_aLocUI';
-  d.style.cssText = 'position:fixed;inset:0;z-index:9850;background:#0d0f1a;display:flex;flex-direction:column';
+  d.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9850;background:#0d0f1a;display:flex;flex-direction:column';
   d.innerHTML =
     '<div style="background:#1a1f2e;border-bottom:1px solid #2a3942;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">' +
       '<button onclick="document.getElementById(\'_aLocUI\').remove()" style="width:40px;height:40px;background:#2a3942;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">' +
@@ -488,7 +488,7 @@ function _openContactPicker() {
 
   var d = document.createElement('div');
   d.id = '_ctUI';
-  d.style.cssText = 'position:fixed;inset:0;z-index:9850;background:#0b0f1a;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+  d.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9850;background:#0b0f1a;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
 
   d.innerHTML =
     '<div style="background:linear-gradient(135deg,#1a1040,#0f1a2e);border-bottom:1px solid rgba(11,15,58,.25);padding:14px 16px 10px;flex-shrink:0">' +
@@ -534,6 +534,45 @@ function _openContactPicker() {
   function _ini(n){ return (n||'?')[0].toUpperCase(); }
   function _xesc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
+
+  var _phoneState = 'idle', _phoneErr = '';
+  function _ctBtn(id, label, onclick, primary) {
+    return '<button id="'+id+'" onclick="'+onclick+'" style="margin-top:4px;'+(primary
+      ?'background:linear-gradient(135deg,#0B0F3A,#1a237e);border:none;color:#fff;'
+      :'background:transparent;border:1.5px solid rgba(165,180,252,.45);color:#c7d2fe;')+
+      'border-radius:12px;font-size:14px;font-weight:700;padding:11px 24px;cursor:pointer;min-width:200px">'+label+'</button>';
+  }
+  function _phoneEmptyHtml() {
+    var T = 'color:#e9d5ff;font-size:15px;font-weight:700;margin:0;text-align:center';
+    var P = 'color:#9ca3af;font-size:13px;margin:0;text-align:center;line-height:1.5';
+    var native = !!(window.EtcNative && window.EtcNative.isNative);
+    var pick = native ? _ctBtn('_ctPickOne','Pick one from phone','_ctPickOne()',false) : '';
+    if (_phoneState === 'denied') {
+      return '<p style="'+T+'">Contacts permission is off</p>'+
+        '<p style="'+P+'">Allow ETC to read your contacts, or pick one person without giving access.</p>'+
+        _ctBtn('_ctPhoneRetry','Allow Access','_ctLoadPhone()',true)+
+        _ctBtn('_ctOpenSettings','Open Settings','_ctOpenSettings()',false)+pick;
+    }
+    if (_phoneState === 'empty') {
+      return '<p style="'+T+'">No contacts found</p>'+
+        '<p style="'+P+'">This phone shows no saved contacts to ETC. You can still pick one.</p>'+
+        _ctBtn('_ctPhoneRetry','Try again','_ctLoadPhone()',true)+pick;
+    }
+    if (_phoneState === 'error') {
+      return '<p style="'+T+'">Could not read contacts</p>'+
+        '<p style="'+P+'">'+_xesc(_phoneErr||'Something went wrong.')+'</p>'+
+        _ctBtn('_ctPhoneRetry','Try again','_ctLoadPhone()',true)+pick;
+    }
+    return '<p style="'+T+'">Phone Contacts</p>'+
+      '<p style="'+P+'">Tap <strong>Allow Access</strong> to choose contacts from your phone.</p>'+
+      _ctBtn('_ctPhoneRetry','Allow Access','_ctLoadPhone()',true)+pick;
+  }
+  function _mapRows(rows) {
+    return (rows||[]).filter(function(c){return c&&(c.name||(c.phones&&c.phones.length));}).map(function(c){
+      return{name:c.name||(c.phones&&c.phones[0])||'Unknown',phone:(c.phones&&c.phones[0])||'',email:(c.emails&&c.emails[0])||''};
+    }).sort(function(a,b){return String(a.name).localeCompare(String(b.name));});
+  }
+
   function _renderChips() {
     var chips=document.getElementById('_ctChips'),cnt=document.getElementById('_ctSelCount'),bar=document.getElementById('_ctSendBar'),btn=document.getElementById('_ctSendBtn');
     if(cnt)cnt.textContent=_selected.length+' selected';
@@ -560,7 +599,7 @@ function _openContactPicker() {
       list.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:14px">'+
         '<div style="width:72px;height:72px;border-radius:50%;background:rgba(11,15,58,.12);display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.6"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>'+
         (_tab==='phone'
-          ?'<p style="color:#e9d5ff;font-size:15px;font-weight:700;margin:0;text-align:center">Phone Contacts</p><p style="color:#6b7280;font-size:13px;margin:0;text-align:center;line-height:1.5">Tap <strong>Allow Access</strong> to choose contacts from your phone.</p><button id="_ctPhoneRetry" onclick="_ctLoadPhone()" style="margin-top:4px;background:linear-gradient(135deg,#0B0F3A,#1a237e);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;padding:11px 24px;cursor:pointer">Allow Access</button>'
+          ?_phoneEmptyHtml()
           :'<p style="color:#e9d5ff;font-size:15px;font-weight:700;margin:0">No app users found</p><p style="color:#6b7280;font-size:13px;margin:0;text-align:center">No other users are registered yet.</p>')+
       '</div>';
       return;
@@ -608,15 +647,18 @@ function _openContactPicker() {
 
   window._ctLoadPhone = function(){
     var list=document.getElementById('_ctList');
-    if(list)list.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:16px"><div style="width:56px;height:56px;border-radius:50%;border:3px solid #0B0F3A;border-top:3px solid transparent;animation:spin .8s linear infinite"></div><p style="color:#6B7280;font-size:14px;font-weight:600;margin:0">Requesting permission...</p></div>';
+    if(list)list.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:16px"><div style="width:56px;height:56px;border-radius:50%;border:3px solid #0B0F3A;border-top:3px solid transparent;animation:spin .8s linear infinite"></div><p style="color:#6B7280;font-size:14px;font-weight:600;margin:0">Loading contacts...</p></div>';
     /* Android app: read the phone book through the native DeviceFiles plugin (asks for READ_CONTACTS) */
-    if(window.EtcNative&&window.EtcNative.isNative&&window.EtcNative.listContacts){
-      window.EtcNative.listContacts().then(function(rows){
-        _phoneContacts=(rows||[]).filter(function(c){return c&&(c.name||(c.phones&&c.phones.length));}).map(function(c){
-          return{name:c.name||(c.phones&&c.phones[0])||'Unknown',phone:(c.phones&&c.phones[0])||'',email:(c.emails&&c.emails[0])||''};
-        }).sort(function(a,b){return String(a.name).localeCompare(String(b.name));});
-        _phoneLoaded=_phoneContacts.length>0; _renderList(_phoneContacts);
-      }).catch(function(){_phoneLoaded=false;_phoneContacts=[];_renderList([]);});
+    if(window.EtcNative&&window.EtcNative.isNative&&window.EtcNative.loadPhoneContacts){
+      window.EtcNative.loadPhoneContacts().then(function(r){
+        _phoneState=r.state; _phoneErr=r.error||'';
+        _phoneContacts=_mapRows(r.contacts);
+        _phoneLoaded=_phoneContacts.length>0;
+        if(_tab==='phone') _renderList(_phoneContacts);
+      }).catch(function(e){
+        _phoneState='error'; _phoneErr=String(e&&e.message||e||''); _phoneLoaded=false; _phoneContacts=[];
+        if(_tab==='phone') _renderList([]);
+      });
       return;
     }
     /* Web Contacts API fallback */
@@ -624,12 +666,42 @@ function _openContactPicker() {
       navigator.contacts.select(['name','tel','email'],{multiple:true})
         .then(function(cts){
           _phoneContacts=(cts||[]).map(function(c){return{name:(c.name&&c.name[0])||'Unknown',phone:(c.tel&&c.tel[0])||'',email:(c.email&&c.email[0])||''};}).sort(function(a,b){return a.name.localeCompare(b.name);});
-          _phoneLoaded=true; _renderList(_phoneContacts);
-        }).catch(function(){_phoneLoaded=true;_phoneContacts=[];_renderList([]);});
+          _phoneLoaded=true; _phoneState=_phoneContacts.length?'ok':'empty'; _renderList(_phoneContacts);
+        }).catch(function(){_phoneLoaded=true;_phoneState='empty';_phoneContacts=[];_renderList([]);});
       return;
     }
-    _phoneLoaded=true; _phoneContacts=[]; _renderList([]);
+    _phoneLoaded=true; _phoneState='empty'; _phoneContacts=[]; _renderList([]);
   };
+
+  /* refused permission: Settings button + reload when the user comes back */
+  window._ctOpenSettings = function(){
+    window.__ctWaitSettings = true;
+    if(window.EtcNative&&window.EtcNative.openAppSettings) window.EtcNative.openAppSettings();
+  };
+  /* system contact list - works with no permission at all */
+  window._ctPickOne = function(){
+    if(!(window.EtcNative&&window.EtcNative.pickContact)) return;
+    window.EtcNative.pickContact().then(function(c){
+      if(!c||!(c.name||c.phone)) return;
+      var item={name:c.name||c.phone||'Unknown',phone:c.phone||'',email:''};
+      var dup=_phoneContacts.some(function(x){return x.name===item.name&&x.phone===item.phone;});
+      if(!dup) _phoneContacts.unshift(item);
+      var idx=_phoneContacts.findIndex(function(x){return x.name===item.name&&x.phone===item.phone;});
+      _tab='phone'; _phoneLoaded=true;
+      _activeList=_phoneContacts;
+      if(!_selected.some(function(x){return x.name===item.name&&x.phone===item.phone;})) _selected.push({uid:null,name:item.name,phone:item.phone,email:''});
+      _renderChips(); _renderList(_phoneContacts);
+    }).catch(function(){ /* cancelled */ });
+  };
+  window.__ctOnResume = function(){
+    if(!window.__ctWaitSettings) return;
+    window.__ctWaitSettings=false;
+    if(document.getElementById('_ctUI')&&_tab==='phone') window._ctLoadPhone();
+  };
+  if(window.EtcNative&&window.EtcNative.isNative&&!window.__ctResumeBound){
+    window.__ctResumeBound=true;
+    window.EtcNative.onResume(function(){ if(window.__ctOnResume) window.__ctOnResume(); });
+  }
 
   document.getElementById('_ctSearchToggle').onclick=function(){
     _searchOpen=!_searchOpen;
@@ -680,7 +752,7 @@ function _openContactPicker() {
 function _openPoll() {
   var d = document.createElement('div');
   d.id = '_pollUI';
-  d.style.cssText = 'position:fixed;inset:0;z-index:9850;background:#0d0f1a;display:flex;flex-direction:column';
+  d.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9850;background:#0d0f1a;display:flex;flex-direction:column';
   d.innerHTML =
     '<div style="background:#1a1f2e;border-bottom:1px solid #2a3942;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">' +
       '<button onclick="document.getElementById(\'_pollUI\').remove()" style="width:40px;height:40px;background:#2a3942;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e9edef" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>' +
@@ -741,7 +813,7 @@ function _openEvent(prefill) {
   var ex = document.getElementById('_eventUI'); if (ex) ex.remove();
   var d = document.createElement('div');
   d.id = '_eventUI';
-  d.style.cssText = 'position:fixed;inset:0;z-index:9850;background:#0d0f1a;display:flex;flex-direction:column;overflow-y:auto';
+  d.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9850;background:#0d0f1a;display:flex;flex-direction:column;overflow-y:auto';
   var now = new Date(); var pad = function(n){ return n<10?'0'+n:n; };
   var defDt = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'T'+pad(now.getHours())+':00';
   var pf = prefill || {};

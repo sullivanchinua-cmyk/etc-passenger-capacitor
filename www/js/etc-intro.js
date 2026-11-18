@@ -49,7 +49,7 @@
 
   var CSS = '\
 #etc-intro{position:fixed;inset:0;z-index:2147483000;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;\
-padding:0 24px max(40px,calc(env(safe-area-inset-bottom) + 24px));font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;\
+padding:0 24px max(40px,calc(var(--sab, 0px) + 24px));font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;\
 -webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;touch-action:manipulation}\
 :where(#etc-intro *){box-sizing:border-box;margin:0;padding:0}\
 html.etc-intro-lock,html.etc-intro-lock body{overflow:hidden!important;overscroll-behavior:none}\
@@ -61,7 +61,7 @@ radial-gradient(ellipse 70% 40% at 50% 82%,rgba(0,80,90,.28) 0%,transparent 55%)
 linear-gradient(180deg,#05070f 0%,#0a0e1a 42%,#05070f 100%)}\
 .ei-p{position:absolute;bottom:-12px;border-radius:50%;background:rgba(78,205,196,.45);animation:ei-rise linear infinite;will-change:transform,opacity}\
 @keyframes ei-rise{0%{transform:translate3d(0,0,0);opacity:0}12%{opacity:.7}88%{opacity:.35}100%{transform:translate3d(0,-110vh,0);opacity:0}}\
-.ei-stage{position:absolute;left:0;right:0;top:calc(6% + env(safe-area-inset-top));height:56%;display:flex;align-items:center;justify-content:center;z-index:2}\
+.ei-stage{position:absolute;left:0;right:0;top:calc(6% + var(--sat, 0px));height:56%;display:flex;align-items:center;justify-content:center;z-index:2}\
 .ei-slot{--W:min(92vw,460px,calc(38dvh * 2.05));position:relative;width:var(--W)}\
 .ei-floor{position:absolute;left:50%;top:86%;width:300vw;height:calc(var(--W) * .6);transform:translateX(-50%) rotate(-' + ANGLE + 'deg);\
 -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 30%,#000 70%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 30%,#000 70%,transparent 100%)}\
@@ -93,7 +93,7 @@ transition:transform .35s ' + EXPO + ',box-shadow .35s ' + EXPO + ';-webkit-tap-
 .ei-cta-ic{width:36px;height:36px;border-radius:50%;background:rgba(4,16,18,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}\
 .ei-cta-ic svg{width:18px;height:18px;stroke:#041012;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}\
 .ei-cta-arrows{letter-spacing:-2px;opacity:.7;font-weight:600;margin-left:6px}\
-.ei-skip{position:absolute;z-index:6;right:8px;top:calc(env(safe-area-inset-top) + 6px);min-width:56px;min-height:44px;padding:0 14px;background:none;border:0;font-family:inherit;font-weight:600;font-size:13px;line-height:1;color:rgba(255,255,255,.6);cursor:pointer;-webkit-tap-highlight-color:transparent}\
+.ei-skip{position:absolute;z-index:6;right:8px;top:calc(var(--sat, 0px) + 6px);min-width:56px;min-height:44px;padding:0 14px;background:none;border:0;font-family:inherit;font-weight:600;font-size:13px;line-height:1;color:rgba(255,255,255,.6);cursor:pointer;-webkit-tap-highlight-color:transparent}\
 .ei-vid{position:absolute;z-index:1;left:0;right:0;margin:0 auto;display:block;--vw:min(92vw,560px);--vh:calc(var(--vw) * .5556);width:var(--vw);height:var(--vh);top:calc(47% - var(--vh) / 2);\
 opacity:0;transform-origin:0 0;pointer-events:none;contain:layout}\
 .ei-vid>*{position:absolute;pointer-events:none;-webkit-user-drag:none;user-select:none}\
@@ -103,7 +103,7 @@ opacity:0;transform-origin:0 0;pointer-events:none;contain:layout}\
 .ei-lg svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}\
 .ei-lg img{position:absolute;inset:0}\
 .ei-streak{top:30%;height:40%;width:9%;left:0;background:linear-gradient(90deg,transparent,rgba(120,255,170,.0) 10%,rgba(200,255,225,.95) 50%,rgba(120,255,170,0) 90%,transparent);filter:blur(10px);mix-blend-mode:screen;opacity:0}\
-#etc-intro.ei-docked .ei-vid{--vw:min(62vw,260px);top:calc(env(safe-area-inset-top) + 60px - var(--vh) / 2)}\
+#etc-intro.ei-docked .ei-vid{--vw:min(62vw,260px);top:calc(var(--sat, 0px) + 60px - var(--vh) / 2)}\
 #etc-intro.ei-vrun .ei-skip{visibility:visible}\
 @media (max-height:600px){.ei-sub{display:none}.ei-brand{margin-bottom:10px}.ei-h1{font-size:22px;margin-bottom:14px}.ei-stage{height:64%}}\
 ';

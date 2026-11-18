@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="theme-color" content="#D2D3D6" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <script src="../js/safe-area.js"></script>
     <title>ETC Chat – Coal City</title>
     <link rel="stylesheet" href="../css/tailwind.css" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)">
     <style>
@@ -39,7 +40,7 @@
   <style>
     /* ── Mini Music Player ── */
     #miniPlayer {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      position: fixed; top: var(--sat, 0px); left: 0; right: 0; z-index: 1000;
       background: linear-gradient(135deg, #0B0F3A, #1a237e);
       border-bottom: 1px solid rgba(11,15,58,.12);
       padding: 8px 14px;
@@ -887,7 +888,7 @@ body{touch-action:pan-y pinch-zoom;position:relative}
                 if (!_banner) {
                   _banner = document.createElement('div');
                   _banner.id = '_offlineBanner';
-                  _banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;text-align:center;font-size:13px;font-weight:600;padding:7px 16px;transition:all .3s;pointer-events:none';
+                  _banner.style.cssText = 'position:fixed;top:var(--sat, 0px);left:0;right:0;z-index:9999;text-align:center;font-size:13px;font-weight:600;padding:7px 16px;transition:all .3s;pointer-events:none';
                   document.body.appendChild(_banner);
                 }
                 if (online) {
@@ -1339,7 +1340,7 @@ loadMentionUsers();
             var emojis = ['😂','🤣','😭','😍','🥰','😎','🤔','😅','🔥','💯','👍','❤️','💪','🎉','😤','🙏','😩','🥺','😏','🤯','😇','🤑','😜','🤗'];
             var emojiSpans = emojis.map(function(e){ return '<span onclick="insertEmoji(\'' + e + '\')" style="font-size:22px;cursor:pointer;text-align:center;padding:4px;border-radius:8px;display:block">' + e + '</span>'; }).join('');
             return '<div style="padding-bottom:100px;background:transparent;position:relative;z-index:1">' +
-                    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);border-radius:0 0 22px 22px;position:sticky;top:64px;z-index:10;box-shadow:0 10px 28px rgba(17,17,18,.08)" id="classroomChatHeader">' +
+                    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);border-radius:0 0 22px 22px;position:sticky;top:calc(64px + var(--sat, 0px));z-index:10;box-shadow:0 10px 28px rgba(17,17,18,.08)" id="classroomChatHeader">' +
                         '<h2 id="coalCityTitle" style="font-size:18px;font-weight:800;margin:0;letter-spacing:-.02em;color:inherit">🚌 Coal City Chat</h2>' +
                         '<div style="display:flex;align-items:center;gap:8px" id="classroomChatActions">' +
                           '<button onclick="window.location.href=\'pages/chat.html\'" style="background:linear-gradient(135deg,#1a237e,#0B0F3A);color:#fff;font-weight:700;padding:8px 14px;border-radius:14px;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:14px">' +
@@ -1365,7 +1366,7 @@ loadMentionUsers();
                       '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0F3A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
                     '</button>' +
                    '</div>' +
-                   '<div id="chatInputBar" style="position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.7);border-radius:22px 22px 0 0;box-shadow:0 -12px 32px rgba(17,17,18,.1);padding-bottom:env(safe-area-inset-bottom,0px)">' +
+                   '<div id="chatInputBar" style="position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.7);border-radius:22px 22px 0 0;box-shadow:0 -12px 32px rgba(17,17,18,.1);padding-bottom:var(--sab, 0px)">' +
                    /* WhatsApp-style reply bar for classroom */
                    '<div id="pubReplyBar" style="display:none;background:#FFFFFF;border-bottom:1px solid rgba(17,17,18,.08);padding:8px 12px;border-radius:14px 14px 0 0;box-shadow:0 -4px 16px rgba(17,17,18,.06)">' +
                      '<div style="display:flex;align-items:center;gap:10px;background:#F0F2F5;border-radius:10px;border-left:4px solid #25d366;padding:8px 10px;min-height:44px">' +
@@ -1464,7 +1465,7 @@ loadMentionUsers();
           bar.id = '_classSearch';
           // Two-row layout so nothing gets cut off on any screen width
           var light = true; try { light = (localStorage.getItem('etc_ui_mode')||'light') !== 'dark'; } catch(e) {}
-          bar.style.cssText = 'position:fixed;top:56px;left:0;right:0;z-index:400;padding:10px 14px 10px;box-sizing:border-box;border-bottom:2px solid #0B0F3A;' +
+          bar.style.cssText = 'position:fixed;top:calc(56px + var(--sat, 0px));left:0;right:0;z-index:400;padding:10px 14px 10px;box-sizing:border-box;border-bottom:2px solid #0B0F3A;' +
             (light
               ? 'background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(17,17,18,.1);backdrop-filter:blur(12px);'
               : 'background:#1a1f2e;box-shadow:0 6px 24px rgba(0,0,0,.7);');
@@ -1792,7 +1793,7 @@ loadMentionUsers();
           if (existing) existing.remove();
           var d = document.createElement('div');
           d.id = '_mentionBanner';
-          d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(135deg,#0B0F3A,#1a237e);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideDown .3s ease';
+          d.style.cssText = 'position:fixed;top:var(--sat, 0px);left:0;right:0;z-index:99999;background:linear-gradient(135deg,#0B0F3A,#1a237e);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideDown .3s ease';
           d.innerHTML =
             '<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🔔</div>' +
             '<div style="flex:1;min-width:0">' +

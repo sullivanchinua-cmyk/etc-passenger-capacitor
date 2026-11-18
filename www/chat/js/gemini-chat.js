@@ -21,9 +21,6 @@ var GEMINI_MODEL = 'gemini-3.1-flash-lite'; // Gemini Flash Lite (working ETC ke
 var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/' +
                  GEMINI_MODEL + ':generateContent?key=' + GEMINI_KEY;
 
-// Expose for pages whose own scripts call fetch(GEMINI_URL) (e.g. chat/index.html etcAiSend)
-window.GEMINI_URL = GEMINI_URL;
-
 // System prompts per language
 var SYSTEM = {
   en: 'You are the official AI assistant inside the Enugu Transport Corporation (ETC) chat for passengers. ' +
@@ -328,7 +325,7 @@ function _callGemini(userText, historyTexts) {
         { category: 'HARM_CATEGORY_HARASSMENT',  threshold: 'BLOCK_ONLY_HIGH' },
         { category: 'HARM_CATEGORY_HATE_SPEECH',  threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
       ],
-      generationConfig: { maxOutputTokens: 2048, temperature: 0.88 }
+      generationConfig: { maxOutputTokens: 500, temperature: 0.88 }
     })
   })
   .then(function(r) { return r.json(); })

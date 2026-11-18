@@ -66,3 +66,9 @@ Firestore rule for tokens (collection `etc_rtdb_fcm_tokens`): `allow write: if r
 * **Ticket links**: `SHARE_BASE_URL` in `www/native/config.js` is the public web address. Links look like `<SHARE_BASE_URL>/ticket.html#d=...`.
   `npm run android:patch` registers that host (App Link) and `etcbus://` in the manifest. Deploy `www/.well-known/assetlinks.json` with the site.
   It holds the fingerprint of `resources/debug.keystore` (the workflow signs debug builds with it). A release keystore needs its own fingerprint added there.
+
+## Fixes round 3
+* **Safe area**: `www/js/safe-area.js` (loaded first in every page) sets `--sat` / `--sab` and paints navy strips behind the status and navigation bars. Use `var(--sat)` / `var(--sab)` in new CSS, never `env(safe-area-inset-*)`.
+* **Phone contacts**: the picker shows why it is empty (permission off / none found / error), has Open Settings, and "Pick one from phone" (Android's own picker, no permission; native `pickContact` in `etc-device-files`).
+* **Receipt**: ticket ref sits on its own line with a Copy button.
+* **Ticket links open the app**: `www/native/deeplink.js` + intent filters added by `npm run android:patch` (App Link for the SHARE_BASE_URL host, `etcbus://`, MainActivity `singleTask`). After rebuilding, redeploy the website so `/.well-known/assetlinks.json` is live. Browsers on Android get an "Open in ETC app" button.

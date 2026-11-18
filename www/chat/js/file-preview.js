@@ -14,7 +14,7 @@ function _injectStyles() {
   s.id = '_fpCSS';
   s.textContent = [
     '@keyframes _fpIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}',
-    '#_fpOverlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9950;background:#000;display:flex;flex-direction:column;animation:_fpIn .18s ease}',
+    '#_fpOverlay{position:fixed;top:0;left:0;right:0;bottom:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9950;background:#000;display:flex;flex-direction:column;animation:_fpIn .18s ease}',
     '#_fpTopBar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,.6);flex-shrink:0}',
     '#_fpMedia{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}',
     '#_fpMedia img{max-width:100%;max-height:100%;object-fit:contain}',

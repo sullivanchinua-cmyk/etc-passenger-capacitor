@@ -21,12 +21,14 @@ html {
 
 /* App-wide: keep normal page content from sitting under the Android status bar.
    (index.html is excluded — its .hdr / .hdr-right / .s-row already add their own
-   env(safe-area-inset-top) directly; stacking this on top of that pushed them down
+   var(--sat, 0px) directly; stacking this on top of that pushed them down
    twice and broke the header layout there.) Safe on the web too: env() is 0px
    on any screen without a notch/status-bar inset, so this is a no-op there. */
 body:not(.home-lite) {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: var(--sat, 0px);
 }
+/* home: the page itself starts below the status bar, so the sticky header never overlaps the greeting */
+.home-lite #etcApp { padding-top: var(--sat, 0px); }
 
 body {
   font-family: var(--font);
@@ -121,7 +123,7 @@ body {
   --ease: cubic-bezier(.32, .72, .24, 1);
   --dur: 380ms;
   position: fixed;
-  bottom: 20px;
+  bottom: calc(20px + var(--sab, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 70%;
@@ -207,7 +209,7 @@ body {
    ========================================================= */
 .hdr {
   position: sticky;
-  top: env(safe-area-inset-top, 0px);
+  top: var(--sat, 0px);
   z-index: 20;
   display: flex;
   align-items: center;
@@ -219,7 +221,7 @@ body {
 /* profile + header search: fixed, never move */
 .hdr-right {
   position: fixed;
-  top: calc(16px + env(safe-area-inset-top, 0px));
+  top: calc(16px + var(--sat, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -237,7 +239,7 @@ body {
 /* the search row sticks to the top; JS shrinks the pill as it rises */
 .s-row {
   position: sticky;
-  top: env(safe-area-inset-top, 0px);
+  top: var(--sat, 0px);
   z-index: 30;
   display: flex;
   align-items: center;
@@ -280,7 +282,7 @@ body {
 /* chips stick just under the docked search row */
 .chips {
   position: sticky;
-  top: calc(72px + env(safe-area-inset-top, 0px));
+  top: calc(72px + var(--sat, 0px));
   z-index: 25;
   display: flex;
   align-items: center;
@@ -416,7 +418,7 @@ body {
 
 /* ---------- toast (home placeholders) ---------- */
 .toast {
-  position: fixed; left: 50%; bottom: 92px; transform: translate(-50%, 12px);
+  position: fixed; left: 50%; bottom: calc(92px + var(--sab, 0px)); transform: translate(-50%, 12px);
   padding: 10px 16px; border-radius: 999px; background: var(--ink); color: #fff;
   font: 600 13px var(--font); opacity: 0; pointer-events: none; z-index: 80;
   transition: opacity .2s ease, transform .25s var(--ease); white-space: nowrap;
@@ -590,7 +592,7 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
    ========================================================= */
 #liveMap { position: fixed; inset: 0; z-index: 0; }
 .m-chip {
-  position: fixed; top: 16px; left: 20px; z-index: 30; max-width: calc(100% - 92px);
+  position: fixed; top: calc(16px + var(--sat, 0px)); left: 20px; z-index: 30; max-width: calc(100% - 92px);
   display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px 0 12px; box-sizing: border-box;
   border-radius: 999px; background: rgba(255,255,255,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,.7); box-shadow: 0 6px 18px rgba(17,17,18,.1);
@@ -598,12 +600,12 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
 .m-chip svg { width: 18px; height: 18px; fill: none; stroke: #000; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 .m-chip .c1 { font-size: 12.5px; font-weight: 700; line-height: 1.2; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .m-chip .c2 { font-size: 11px; color: var(--mute); font-weight: 500; line-height: 1.1; }
-.m-locate { position: fixed; top: 16px; right: 20px; z-index: 30; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 6px 18px rgba(17,17,18,.1); display: flex; align-items: center; justify-content: center; }
+.m-locate { position: fixed; top: calc(16px + var(--sat, 0px)); right: 20px; z-index: 30; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 6px 18px rgba(17,17,18,.1); display: flex; align-items: center; justify-content: center; }
 .m-locate svg { width: 21px; height: 21px; fill: none; stroke: #000; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
 .leaflet-top.leaflet-left .leaflet-control-attribution { margin-top: 68px; margin-left: 20px; }
 
 .m-sheet {
-  position: fixed; left: 50%; bottom: 88px; transform: translateX(-50%); z-index: 30;
+  position: fixed; left: 50%; bottom: calc(88px + var(--sab, 0px)); transform: translateX(-50%); z-index: 30;
   width: calc(100% - 24px); max-width: 406px; box-sizing: border-box; padding: 8px 16px 16px;
   background: #fff; border-radius: 30px; box-shadow: 0 14px 40px rgba(17,17,18,.18);
 }
@@ -713,7 +715,7 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
 .b-sum svg { width: 17px; height: 17px; fill: none; stroke: #000; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
 .b-sum span.m { color: var(--mute); font-weight: 500; }
 .b-row + .b-row { margin-top: 10px; }
-.b-bookbar { position: sticky; bottom: 14px; z-index: 20; margin-top: 26px; }
+.b-bookbar { position: sticky; bottom: calc(14px + var(--sab, 0px)); z-index: 20; margin-top: 26px; }
 .b-bookbar .book-btn { margin-top: 0; box-shadow: 0 14px 30px rgba(17,17,18,.32); }
 .b-bookbar .book-btn[disabled] { opacity: .45; }
 
@@ -842,18 +844,18 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
 .seat.pop { animation: seatPop .28s var(--ease); }
 @keyframes seatPop { 0% { transform: scale(.85); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
 .bus-back { text-align: center; margin-top: 12px; font-size: 11px; font-weight: 800; letter-spacing: .3em; opacity: .5; }
-.seat-foot { position: sticky; bottom: 0; margin: 14px -16px 0; padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); background: rgba(15,23,42,.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,.1); }
+.seat-foot { position: sticky; bottom: 0; margin: 14px -16px 0; padding: 12px 16px calc(14px + var(--sab, 0px)); background: rgba(15,23,42,.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,.1); }
 .seat-foot .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 10px; min-height: 26px; align-items: center; }
 .seat-foot .chips::-webkit-scrollbar { display: none; }
 .seat-foot .chips span { flex-shrink: 0; height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(0,135,81,.9); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; }
 .seat-foot .chips em { font-style: normal; font-size: 12px; opacity: .7; font-weight: 500; }
 .seat-foot .ov-btn { background: #008751; box-shadow: 0 6px 16px rgba(0,135,81,.35); }
-.seat-toast { position: fixed; left: 50%; top: 22px; transform: translate(-50%, -10px); z-index: 5; padding: 8px 14px; border-radius: 999px; background: #fff; color: #111; font-size: 12.5px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s var(--ease); white-space: nowrap; }
+.seat-toast { position: fixed; left: 50%; top: calc(22px + var(--sat, 0px)); transform: translate(-50%, -10px); z-index: 5; padding: 8px 14px; border-radius: 999px; background: #fff; color: #111; font-size: 12.5px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s var(--ease); white-space: nowrap; }
 .seat-toast.show { opacity: 1; transform: translate(-50%, 0); }
 .ov .cal-stack { transform: translateY(14px) scale(.96); transition: transform .32s var(--ease); }
 .ov.show .cal-stack { transform: none; }
 .ov-total b.pulse { display: inline-block; animation: calBump .3s var(--ease); }
-.ov-toast { position: fixed; left: 50%; bottom: 40px; transform: translate(-50%, 10px); z-index: 4000; padding: 10px 16px; border-radius: 999px; background: var(--ink); color: #fff; font: 600 13px var(--font); opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s var(--ease); max-width: 90%; text-align: center; }
+.ov-toast { position: fixed; left: 50%; bottom: calc(40px + var(--sab, 0px)); transform: translate(-50%, 10px); z-index: 4000; padding: 10px 16px; border-radius: 999px; background: var(--ink); color: #fff; font: 600 13px var(--font); opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s var(--ease); max-width: 90%; text-align: center; }
 .ov-toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 .bus-dots { margin: 0 0 8px; }
@@ -868,7 +870,7 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
 /* ---------- ONE back button everywhere (light grey glass disc, bold black arrow) ----------
    position: fixed → it never scrolls away; same spot on every page. */
 .back-btn {
-  position: fixed; top: 16px; left: max(20px, calc(50% - 195px)); z-index: 2000;
+  position: fixed; top: calc(16px + var(--sat, 0px)); left: max(20px, calc(50% - 195px)); z-index: 2000;
   width: 44px; height: 44px; padding: 0; box-sizing: border-box; border-radius: 50%; border: 0;
   display: flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer;
   background: rgba(238, 238, 240, .94);
@@ -1066,7 +1068,7 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
 }
 .lock-skip {
   position: absolute;
-  top: max(14px, env(safe-area-inset-top));
+  top: max(14px, var(--sat, 0px));
   right: 20px;
   z-index: 5;
   height: 34px;
@@ -1088,7 +1090,7 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
 }
 .lock-close {
   position: absolute;
-  top: max(14px, env(safe-area-inset-top));
+  top: max(14px, var(--sat, 0px));
   left: 20px;
   z-index: 5;
   width: 36px;
@@ -1248,7 +1250,7 @@ html.map-open, html.map-open body { overflow: hidden; height: 100dvh; }
   align-items: center;
   justify-content: space-between;
   width: min(300px, 88vw);
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  padding-bottom: max(8px, var(--sab, 0px));
 }
 .lock-toggle {
   border: 0;

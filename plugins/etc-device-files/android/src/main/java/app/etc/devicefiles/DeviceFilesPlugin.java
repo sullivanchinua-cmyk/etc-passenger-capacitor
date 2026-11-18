@@ -1,6 +1,7 @@
 package app.etc.devicefiles;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -18,12 +19,15 @@ import android.provider.Settings;
 import android.util.Size;
 import android.webkit.MimeTypeMap;
 
+import androidx.activity.result.ActivityResult;
+
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
@@ -753,6 +757,55 @@ public class DeviceFilesPlugin extends Plugin {
             call.resolve();
         } catch (Exception e) {
             call.reject("shareText failed: " + e.getMessage());
+        }
+    }
+
+    // ------------------------------------------------------------------ system contact picker
+    // Needs NO permission: Android's own contact list opens, the user taps one person, and only that
+    // person's name + number are handed back. Used when READ_CONTACTS was refused or the list is empty.
+
+    @PluginMethod
+    public void pickContact(PluginCall call) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+            startActivityForResult(call, intent, "pickContactResult");
+        } catch (Exception e) {
+            call.reject("pickContact failed: " + e.getMessage());
+        }
+    }
+
+    @ActivityCallback
+    private void pickContactResult(PluginCall call, ActivityResult result) {
+        if (call == null) {
+            return;
+        }
+        if (result == null || result.getResultCode() != Activity.RESULT_OK
+            || result.getData() == null || result.getData().getData() == null) {
+            call.reject("CANCELLED");
+            return;
+        }
+        Cursor c = null;
+        try {
+            c = getContext().getContentResolver().query(
+                result.getData().getData(),
+                new String[] {
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                },
+                null, null, null
+            );
+            JSObject o = new JSObject();
+            if (c != null && c.moveToFirst()) {
+                o.put("name", c.getString(0));
+                o.put("phone", c.getString(1));
+            }
+            call.resolve(o);
+        } catch (Exception e) {
+            call.reject("pickContact failed: " + e.getMessage());
+        } finally {
+            if (c != null) {
+                c.close();
+            }
         }
     }
 

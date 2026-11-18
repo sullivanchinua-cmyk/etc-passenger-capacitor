@@ -28,7 +28,7 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # Fixed: do NOT use android-actions/setup-android (it fails on obsolete "tools" package)
+      # Fixed: do NOT use android-actions/setup-android (fails on obsolete "tools" package)
       - name: Accept Android SDK licenses
         run: |
           yes | sdkmanager --licenses >/dev/null || true
@@ -51,7 +51,6 @@ jobs:
       - name: Sync web files into Android
         run: npx cap sync android
 
-      # same debug signing key every run (ticket-link / assetlinks)
       - name: Use the project debug keystore
         run: |
           mkdir -p ~/.android

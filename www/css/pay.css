@@ -38,7 +38,7 @@
 .pay-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 6px 16px 22px; -webkit-overflow-scrolling: touch; }
 .pay-body > * { animation: pay-in .32s cubic-bezier(.22, 1, .36, 1) both; }
 @keyframes pay-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.pay-foot { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 16px calc(12px + env(safe-area-inset-bottom)); font-size: 11px; color: rgba(255, 255, 255, .5); border-top: 1px solid rgba(255, 255, 255, .08); }
+.pay-foot { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 16px calc(12px + var(--sab, 0px)); font-size: 11px; color: rgba(255, 255, 255, .5); border-top: 1px solid rgba(255, 255, 255, .08); }
 .pay-foot svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* glass blocks + fields */

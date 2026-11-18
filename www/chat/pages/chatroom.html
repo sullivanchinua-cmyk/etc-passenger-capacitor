@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <script src="../../js/safe-area.js"></script>
   <title>Chat – ETC Chat</title>
   <link rel="stylesheet" href="../../css/tailwind.css" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.tailwindcss.com';document.head.appendChild(s)">
   <script src="../../vendor/v10/firebase-app-compat.js"></script>
@@ -34,7 +35,7 @@
   <style>
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;margin:0;padding:0;overflow:hidden;max-width:100vw;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-    body{display:flex;flex-direction:column;background:#0d0f1a;color:#e9edef;overflow-x:hidden;padding-top:env(safe-area-inset-top,0px)} /* keep the top bar below the Android status bar */
+    body{box-sizing:border-box;display:flex;flex-direction:column;background:#0d0f1a;color:#e9edef;overflow-x:hidden;padding-top:var(--sat, 0px)} /* keep the top bar below the Android status bar */
 
     /* Messages scrollable area */
     #msgs{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 6px 4px;-webkit-overflow-scrolling:touch;min-height:0;position:relative;display:flex;flex-direction:column}
@@ -1521,37 +1522,16 @@ async function askGemini(prompt, imgB64, imgMime) {
   }catch(e){return"Network wahala: "+e.message;}
 }
 
-// Small "Gemini is typing" bubble inside the message list (replaces the full-screen loader)
-function showGeminiTyping(){
-  hideGeminiTyping();
-  if(!document.getElementById('_gemTypCss')){
-    var st=document.createElement('style'); st.id='_gemTypCss';
-    st.textContent='@keyframes _gemDot{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}'+
-      '#_gemTyping .gd{width:7px;height:7px;border-radius:50%;background:#8696a0;display:inline-block;margin:0 2px;animation:_gemDot 1.1s infinite}'+
-      '#_gemTyping .gd:nth-child(2){animation-delay:.18s}#_gemTyping .gd:nth-child(3){animation-delay:.36s}';
-    document.head.appendChild(st);
-  }
-  var box=document.getElementById('msgs'); if(!box) return;
-  var w=document.createElement('div');
-  w.id='_gemTyping'; w.className='bwrap theirs';
-  w.innerHTML='<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0B0F3A,#1a237e);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🤖</div>'+
-    '<div class="bcont"><div class="bubble theirs" style="padding:10px 14px"><div class="bsender" style="color:#6B7280">Gemini AI</div>'+
-    '<span class="gd"></span><span class="gd"></span><span class="gd"></span></div></div>';
-  box.appendChild(w);
-  try{ scrollBottom(); }catch(e){}
-}
-function hideGeminiTyping(){ var e=document.getElementById('_gemTyping'); if(e) e.remove(); }
-
 async function handleGemini(text){
   var isRoast=/@gemini\s+roast/i.test(text);
   var prompt=text.replace(/@gemini/gi,'').trim();
-  showGeminiTyping();
+  showLoading('🤖 Gemini thinking…');
   if(isRoast&&_chatHist.length>=2){
     var tgt=_chatHist[_chatHist.length-2];
     prompt='Roast this person in savage Pidgin: "'+( tgt.text||'...')+ '"';
   }else if(!prompt){prompt='Greet the ETC agents in Pidgin!';}
   var reply=await askGemini(prompt);
-  hideGeminiTyping();
+  hideLoading();
   if(!chatId)return;
   db.ref('chats/'+chatId).push({text:reply,senderUid:'gemini',senderName:'Gemini AI',ts:Date.now(),read:false,isGemini:true});
 }
@@ -2227,7 +2207,7 @@ function showForwardPickerPriv(text, srcMsgId, fileUrl, fileType) {
   ov.id = '_fwdPickerOv';
   ov.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center';
   ov.innerHTML =
-    '<div style="width:100%;max-width:520px;background:#1a1f2e;border-radius:24px 24px 0 0;display:flex;flex-direction:column;max-height:80vh;padding-bottom:env(safe-area-inset-bottom);animation:sheetUp .22s cubic-bezier(.4,0,.2,1)">'+
+    '<div style="width:100%;max-width:520px;background:#1a1f2e;border-radius:24px 24px 0 0;display:flex;flex-direction:column;max-height:80vh;padding-bottom:var(--sab, 0px);animation:sheetUp .22s cubic-bezier(.4,0,.2,1)">'+
       '<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;background:#374151;border-radius:2px"></div></div>'+
       '<div style="padding:14px 20px 10px;border-bottom:1px solid #374151">'+
         '<p style="color:#fff;font-weight:700;font-size:17px;margin:0 0 4px">Forward to…</p>'+
@@ -2877,7 +2857,7 @@ function initChat() {
     function _showPrivBanner(online) {
       if (!_privBanner) {
         _privBanner = document.createElement('div');
-        _privBanner.style.cssText = 'position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:9999;text-align:center;font-size:13px;font-weight:600;padding:7px 16px;transition:all .3s;pointer-events:none';
+        _privBanner.style.cssText = 'position:fixed;top:var(--sat, 0px);left:0;right:0;z-index:9999;text-align:center;font-size:13px;font-weight:600;padding:7px 16px;transition:all .3s;pointer-events:none';
         document.body.appendChild(_privBanner);
       }
       if (online) {

@@ -69,6 +69,36 @@
       });
     },
 
+    /** Phone contacts with a reason: { state: 'ok' | 'denied' | 'empty' | 'error' | 'nonative', contacts: [], error } */
+    loadPhoneContacts: function () {
+      var df = N.deviceFiles();
+      if (!df) return Promise.resolve({ state: 'nonative', contacts: [] });
+      return df.requestAccess({ contacts: true }).then(function (a) {
+        if (!a || !a.contacts) return { state: 'denied', contacts: [] };
+        return df.listContacts().then(function (r) {
+          var rows = (r && r.contacts) || [];
+          return { state: rows.length ? 'ok' : 'empty', contacts: rows };
+        });
+      }).catch(function (e) {
+        var msg = String((e && (e.message || e.errorMessage)) || e || '');
+        return { state: /PERMISSION_DENIED/i.test(msg) ? 'denied' : 'error', contacts: [], error: msg };
+      });
+    },
+
+    /** Android's own contact list (no permission needed) - resolves { name, phone } or rejects when cancelled. */
+    pickContact: function () {
+      var df = N.deviceFiles();
+      if (!df || !df.pickContact) return Promise.reject(new Error('pickContact missing'));
+      return df.pickContact();
+    },
+
+    /** This app's page in Android Settings (to switch a refused permission back on). */
+    openAppSettings: function () {
+      var df = N.deviceFiles();
+      if (df && df.openAppSettings) return df.openAppSettings();
+      return Promise.resolve();
+    },
+
     /** Android share sheet (WhatsApp etc.) - the WebView has no navigator.share. */
     shareText: function (text, title) {
       var df = N.deviceFiles();

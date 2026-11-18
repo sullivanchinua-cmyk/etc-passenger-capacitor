@@ -441,8 +441,9 @@
         <div class="rc-total"><span>Total paid</span><b>${naira(total)}</b></div>
       </div>
       <p class="tk-note" style="margin-top:14px">${mergedView
-      ? "Group ref (boards all remaining — show at gate if phone is off): "
-      : "Ticket ref (show at gate if phone is off): "}<b class="mono">${esc(helpRef)}</b> ${copyBtn(helpRef)}</p>
+      ? "Group ref (boards all remaining — show at gate if phone is off):"
+      : "Ticket ref (show at gate if phone is off):"}</p>
+      <div class="rc-refline"><b class="mono">${esc(helpRef)}</b>${copyBtn(helpRef)}</div>
     </div>`;
   }
 

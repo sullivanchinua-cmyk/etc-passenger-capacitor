@@ -128,7 +128,7 @@ G.openStickerSheet = function(src, label, packName, msgId, isMine) {
 
   var sheet = document.createElement('div');
   sheet.className = '_mvSheet';
-  sheet.style.cssText = 'width:100%;max-width:520px;background:#1a1f2e;border-radius:24px 24px 0 0;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)';
+  sheet.style.cssText = 'width:100%;max-width:520px;background:#1a1f2e;border-radius:24px 24px 0 0;overflow:hidden;padding-bottom:var(--sab, 0px)';
   sheet.innerHTML =
     '<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:#374151;border-radius:2px"></div></div>'+
     // Sticker preview
@@ -239,7 +239,7 @@ G.openVideoPlayer = function(msgId, url, senderName, ts, isMine) {
 
   var ov = document.createElement('div');
   ov.id = '_vpOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9980;background:#000;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
+  ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9980;background:#000;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
 
   ov.innerHTML =
     // ── Top bar ──
@@ -501,7 +501,7 @@ function _openGeminiVideoAnalysis(url, vid, playerOv, senderName, ts) {
 
   var ov = document.createElement('div');
   ov.id = '_gemVidOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,.85);display:flex;flex-direction:column;font-family:-apple-system,sans-serif;padding-bottom:env(safe-area-inset-bottom)';
+  ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9995;background:rgba(0,0,0,.85);display:flex;flex-direction:column;font-family:-apple-system,sans-serif;padding-bottom:var(--sab, 0px)';
 
   // Show the overlay immediately so user sees something
   ov.innerHTML =
@@ -636,7 +636,7 @@ function _openTrimSticker(url, existingVid, playerOv) {
   _injectCSS();
   var ov = document.createElement('div');
   ov.id = '_trimStk';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9990;background:#000;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
+  ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:9990;background:#000;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
 
   ov.innerHTML =
     '<div style="padding:18px;text-align:center;flex-shrink:0">'+
@@ -912,7 +912,7 @@ function _openStickerEditor(src, origLabel) {
   var ex = document.getElementById('_stkEditorOv'); if (ex) ex.remove();
   var ov = document.createElement('div');
   ov.id = '_stkEditorOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#0d1117;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
+  ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:10000;background:#0d1117;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
 
   ov.innerHTML =
     // Top bar
@@ -1042,7 +1042,7 @@ function _openGeminiStickerCreate() {
 
   var ov = document.createElement('div');
   ov.id = '_gemStkOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#0d1117;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
+  ov.style.cssText = 'position:fixed;inset:0;padding-top:var(--sat, 0px);box-sizing:border-box;z-index:10000;background:#0d1117;display:flex;flex-direction:column;font-family:-apple-system,sans-serif';
 
   ov.innerHTML =
     '<div style="background:#111827;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1f2937;flex-shrink:0">' +
