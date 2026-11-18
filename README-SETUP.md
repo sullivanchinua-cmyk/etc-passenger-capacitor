@@ -72,3 +72,11 @@ Firestore rule for tokens (collection `etc_rtdb_fcm_tokens`): `allow write: if r
 * **Phone contacts**: the picker shows why it is empty (permission off / none found / error), has Open Settings, and "Pick one from phone" (Android's own picker, no permission; native `pickContact` in `etc-device-files`).
 * **Receipt**: ticket ref sits on its own line with a Copy button.
 * **Ticket links open the app**: `www/native/deeplink.js` + intent filters added by `npm run android:patch` (App Link for the SHARE_BASE_URL host, `etcbus://`, MainActivity `singleTask`). After rebuilding, redeploy the website so `/.well-known/assetlinks.json` is live. Browsers on Android get an "Open in ETC app" button.
+
+## Fixes round 4
+* **Flicker / jumping to Home / Chats opening the calendar**: `EtcNotifier.openApp()` stored a "page to open" every time a notification or alarm was only *built* (alarm sync runs every 20 s), so the next page load jumped there. It is now read only when a notification is tapped; `alarm-bridge.js` also consumes it once per app start.
+* **View router with DOM cache** (`www/js/spa.js`): index.html is the shell + Home. `map.html` / `events.html` are persistent tab views; `details`, `search`, `book`, `ticket`, `notifications` stack on top as page views. Back / tab switches only show/hide - nothing reloads, scroll + inputs stay. Views are same-origin iframes that reuse the shell's native layer. Without the Navigation API (old WebView) it silently falls back to normal page loads. `chat/`, `ai.html`, `history.html`, `games.html` are still separate page loads.
+* **Maps**: `www/js/map-fix.js` re-measures Leaflet on resize/show and retries failed OSM tiles.
+* **Chat**: selection bar and banners sit under the status bar; the Coal City header is flush under the nav.
+* **Receipt**: Copy only under the ticket ref (one pill); removed from Payment ref.
+* **PDF download**: native `saveToDownloads` in `etc-device-files` writes into the phone's Downloads (history.html "Download PDF"). Rebuild the APK for it.

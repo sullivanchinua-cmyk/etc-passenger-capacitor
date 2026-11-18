@@ -92,6 +92,13 @@
       return df.pickContact();
     },
 
+    /** Save a file (base64) into the phone's Downloads folder. Resolves { uri, name }. */
+    saveToDownloads: function (filename, base64, mime) {
+      var df = N.deviceFiles();
+      if (!df || !df.saveToDownloads) return Promise.reject(new Error('saveToDownloads missing'));
+      return df.saveToDownloads({ filename: filename, data: base64, mime: mime || 'application/pdf' });
+    },
+
     /** This app's page in Android Settings (to switch a refused permission back on). */
     openAppSettings: function () {
       var df = N.deviceFiles();
@@ -137,6 +144,7 @@
     if (app && app.addListener) {
       app.addListener('backButton', function (ev) {
         if (closeTopOverlay()) return;
+        if (window.ETC_SPA && window.ETC_SPA.back && window.ETC_SPA.back()) return;   // cached views: close the top page / go to Home
         if (ev && ev.canGoBack) window.history.back();
         else if (app.minimizeApp) app.minimizeApp();
         else if (app.exitApp) app.exitApp();

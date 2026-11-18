@@ -155,7 +155,7 @@ function enterSelectMode(firstMsgId, callbacks) {
   var bar = document.createElement('div');
   _selectBar = bar;
   bar.id = '_selectBar';
-  bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#1e2535;border-bottom:1.5px solid rgba(11,15,58,.35);display:flex;align-items:center;padding:0 4px;height:58px;box-shadow:0 3px 20px rgba(0,0,0,.7);gap:2px;animation:_selIn .18s cubic-bezier(.4,0,.2,1)';
+  bar.style.cssText = 'position:fixed;top:var(--sat, 0px);left:0;right:0;z-index:9999;background:#1e2535;border-bottom:1.5px solid rgba(11,15,58,.35);display:flex;align-items:center;padding:0 4px;height:58px;box-shadow:0 3px 20px rgba(0,0,0,.7);gap:2px;animation:_selIn .18s cubic-bezier(.4,0,.2,1)';
   bar.innerHTML =
     '<button onclick="exitSelectMode()" style="width:46px;height:46px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#e9edef;border-radius:50%;-webkit-tap-highlight-color:transparent;flex-shrink:0">' +
       '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
@@ -764,7 +764,7 @@ function _showFullEmojiGrid(onEmoji) {
   var panel = document.createElement('div');
   _ctxMenu = panel;
   panel.style.cssText =
-    'position:fixed;top:0;left:0;right:0;z-index:9997;' +
+    'position:fixed;top:var(--sat, 0px);left:0;right:0;z-index:9997;' +
     'background:#1c2433;' +
     'border-radius:0 0 18px 18px;' +
     'box-shadow:0 6px 32px rgba(0,0,0,.85);' +

@@ -11,7 +11,7 @@
  *
  * Release rule: change CACHE_VERSION whenever any file in PRECACHE changes.
  */
-const CACHE_VERSION = "etc-v10-20261118-safearea-deeplink";
+const CACHE_VERSION = "etc-v10-20261118-spa-views";
 const CDN_CACHE = "etc-cdn-v1";
 const TILE_CACHE = "etc-tiles-v1";
 const TILE_MAX = 150;
@@ -57,6 +57,8 @@ const PRECACHE = [
   "js/icons.js",
   "js/lib.js",
   "js/safe-area.js",
+  "js/spa.js",
+  "js/map-fix.js",
   "native/deeplink.js",
   "js/machine.js",
   "js/map.js",

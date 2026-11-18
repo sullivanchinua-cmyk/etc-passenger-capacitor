@@ -410,7 +410,7 @@
       total
     )}</p></div>
       <div class="rc-rows">
-        <div><span>Payment ref</span><b class="mono">${esc(t0.reference)}</b>${copyBtn(t0.reference)}</div>
+        <div><span>Payment ref</span><b class="mono">${esc(t0.reference)}</b></div>
         <div><span>Paid on</span><b>${esc(paid)}</b></div>
         <div><span>Paid with</span><b>${esc(methodName)}</b></div>
         <div><span>Route</span><b>${esc(t0.from)} → ${esc(t0.to)}</b></div>
@@ -440,10 +440,13 @@
         }
         <div class="rc-total"><span>Total paid</span><b>${naira(total)}</b></div>
       </div>
-      <p class="tk-note" style="margin-top:14px">${mergedView
-      ? "Group ref (boards all remaining — show at gate if phone is off):"
-      : "Ticket ref (show at gate if phone is off):"}</p>
-      <div class="rc-refline"><b class="mono">${esc(helpRef)}</b>${copyBtn(helpRef)}</div>
+      <div class="rc-ref">
+        <p class="rc-ref-note">${mergedView
+          ? "Group ref (boards all remaining — show at gate if phone is off):"
+          : "Ticket ref (show at gate if phone is off):"}</p>
+        <p class="rc-ref-code">${esc(helpRef)}</p>
+        ${helpRef ? `<button type="button" class="rc-pill" data-copy="${esc(String(helpRef))}" aria-label="Copy ticket ref"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span>Copy</span></button>` : ""}
+      </div>
     </div>`;
   }
 

@@ -13,7 +13,7 @@
  */
 (function () {
   'use strict';
-  if (window.__etcDeepLink) return;
+  if (window.__etcDeepLink || window.__etcChild) return;
   window.__etcDeepLink = true;
 
   var cap = window.Capacitor;

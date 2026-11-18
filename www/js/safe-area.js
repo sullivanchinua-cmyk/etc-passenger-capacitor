@@ -47,7 +47,7 @@
 
   // 3) the two navy strips (shown only when the inset is > 0)
   function ensureBars() {
-    if (!document.body) return;
+    if (!document.body || window.__etcChild) return;
     ['etc-sa-top', 'etc-sa-bot'].forEach(function (id) {
       if (!document.getElementById(id)) {
         var d = document.createElement('div');
@@ -70,7 +70,13 @@
     return v;
   }
   function apply() {
-    var t = probe('top'), b = probe('bottom');
+    var t, b;
+    if (window.__etcChild) {                 // inside a cached view: the shell measured the real bars
+      try {
+        var ps = getComputedStyle(window.parent.document.documentElement);
+        t = num(ps.getPropertyValue('--sat')); b = num(ps.getPropertyValue('--sab'));
+      } catch (e) { t = 0; b = 0; }
+    } else { t = probe('top'); b = probe('bottom'); }
     // keep a previous good value if a late re-measure briefly reports 0 while the keyboard is open
     if (t > 0 || !top) top = t;
     if (b > 0 || !bottom) bottom = b;

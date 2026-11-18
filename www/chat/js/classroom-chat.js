@@ -451,7 +451,7 @@ async function showClassMediaDocs() {
           if (existing) existing.remove();
           var d = document.createElement('div');
           d.id = '_mentionBanner';
-          d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(135deg,#0B0F3A,#1a237e);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideDown .3s ease';
+          d.style.cssText = 'position:fixed;top:var(--sat, 0px);left:0;right:0;z-index:99999;background:linear-gradient(135deg,#0B0F3A,#1a237e);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideDown .3s ease';
           d.innerHTML =
             '<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🔔</div>' +
             '<div style="flex:1;min-width:0">' +

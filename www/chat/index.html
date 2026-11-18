@@ -1340,7 +1340,7 @@ loadMentionUsers();
             var emojis = ['😂','🤣','😭','😍','🥰','😎','🤔','😅','🔥','💯','👍','❤️','💪','🎉','😤','🙏','😩','🥺','😏','🤯','😇','🤑','😜','🤗'];
             var emojiSpans = emojis.map(function(e){ return '<span onclick="insertEmoji(\'' + e + '\')" style="font-size:22px;cursor:pointer;text-align:center;padding:4px;border-radius:8px;display:block">' + e + '</span>'; }).join('');
             return '<div style="padding-bottom:100px;background:transparent;position:relative;z-index:1">' +
-                    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);border-radius:0 0 22px 22px;position:sticky;top:calc(64px + var(--sat, 0px));z-index:10;box-shadow:0 10px 28px rgba(17,17,18,.08)" id="classroomChatHeader">' +
+                    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);border-radius:0 0 22px 22px;position:sticky;top:calc(var(--navb, calc(64px + var(--sat, 0px))) - var(--sat, 0px));z-index:10;box-shadow:0 10px 28px rgba(17,17,18,.08)" id="classroomChatHeader">' +
                         '<h2 id="coalCityTitle" style="font-size:18px;font-weight:800;margin:0;letter-spacing:-.02em;color:inherit">🚌 Coal City Chat</h2>' +
                         '<div style="display:flex;align-items:center;gap:8px" id="classroomChatActions">' +
                           '<button onclick="window.location.href=\'pages/chat.html\'" style="background:linear-gradient(135deg,#1a237e,#0B0F3A);color:#fff;font-weight:700;padding:8px 14px;border-radius:14px;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:14px">' +
@@ -3388,5 +3388,17 @@ loadMentionUsers();
 </script>
 
 
+<script>
+(function(){
+  function m(){
+    var n=document.querySelector('nav.fixed.top-0'); if(!n) return;
+    var b=Math.round(n.getBoundingClientRect().bottom);
+    if(b>0) document.documentElement.style.setProperty('--navb', b+'px');
+  }
+  window.addEventListener('load',m); window.addEventListener('resize',m);
+  [150,600,1500,3000].forEach(function(t){setTimeout(m,t);});
+  document.addEventListener('DOMContentLoaded',m);
+})();
+</script>
 </body>
 </html>

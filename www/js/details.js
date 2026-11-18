@@ -25,7 +25,8 @@
     dragging: false, touchZoom: false, scrollWheelZoom: false, boxZoom: false, keyboard: false,
   }).setView([6.4584, 7.5464], 12);
   map.attributionControl.setPrefix(false);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+  const baseTiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap", keepBuffer: 4, updateWhenIdle: false }).addTo(map);
+  if (window.ETC_MapFix) ETC_MapFix.harden(map, baseTiles, document.getElementById("dMap"));
   const layer = L.layerGroup().addTo(map);
   let lastBounds = null;
 

@@ -66,8 +66,10 @@ final class EtcNotifier {
         }
         launch.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         if (route != null && route.length() > 0) {
+            // The route rides on the intent and is read by EtcAlarmPlugin only when the user TAPS the notification.
+            // (It used to be stored here too - i.e. whenever a notification/alarm was merely BUILT - which made
+            // every page load jump to home/calendar by itself.)
             launch.putExtra(EXTRA_ROUTE, route);
-            EtcAlarmStore.setPendingRoute(c, route);
         }
         return PendingIntent.getActivity(c, requestCode, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }

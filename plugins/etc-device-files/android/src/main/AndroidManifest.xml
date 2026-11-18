@@ -8,4 +8,6 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Phone contacts tab in the Contact picker -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Android 9 and older: saving a PDF into Downloads -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 </manifest>

@@ -3,6 +3,7 @@ package app.etc.devicefiles;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
@@ -757,6 +758,62 @@ public class DeviceFilesPlugin extends Plugin {
             call.resolve();
         } catch (Exception e) {
             call.reject("shareText failed: " + e.getMessage());
+        }
+    }
+
+    // ------------------------------------------------------------------ save a file into the phone's Downloads folder
+
+    /** saveToDownloads({ filename, data (base64), mime }) -> { uri, name }. Android 10+ needs no permission. */
+    @PluginMethod
+    public void saveToDownloads(PluginCall call) {
+        String name = call.getString("filename", "etc-file.pdf");
+        String b64 = call.getString("data");
+        String mime = call.getString("mime", "application/pdf");
+        if (b64 == null || b64.length() == 0) {
+            call.reject("no data");
+            return;
+        }
+        OutputStream os = null;
+        try {
+            byte[] bytes = android.util.Base64.decode(b64, android.util.Base64.DEFAULT);
+            Uri uri;
+            if (Build.VERSION.SDK_INT >= 29) {
+                ContentValues v = new ContentValues();
+                v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
+                v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                uri = getContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                if (uri == null) {
+                    call.reject("could not create the file in Downloads");
+                    return;
+                }
+                os = getContext().getContentResolver().openOutputStream(uri);
+            } else {
+                File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                dir.mkdirs();
+                File f = new File(dir, name);
+                os = new FileOutputStream(f);
+                uri = Uri.fromFile(f);
+            }
+            if (os == null) {
+                call.reject("could not open the file");
+                return;
+            }
+            os.write(bytes);
+            os.flush();
+            JSObject o = new JSObject();
+            o.put("uri", uri.toString());
+            o.put("name", name);
+            call.resolve(o);
+        } catch (Exception e) {
+            call.reject("save failed: " + e.getMessage());
+        } finally {
+            try {
+                if (os != null) {
+                    os.close();
+                }
+            } catch (Exception ignored) {
+            }
         }
     }
 

@@ -38,7 +38,13 @@
     });
   });
 
-  // Back/forward cache: restore this page's own tab
+  // Back/forward cache or a cached view shown again (js/spa.js): restore this page's own tab
+  window.addEventListener("etc:show", () => {
+    leaving = false;
+    nav.classList.add("no-anim");
+    setActive(ownIndex);
+    requestAnimationFrame(() => requestAnimationFrame(() => nav.classList.remove("no-anim")));
+  });
   window.addEventListener("pageshow", (e) => {
     if (e.persisted) {
       leaving = false;

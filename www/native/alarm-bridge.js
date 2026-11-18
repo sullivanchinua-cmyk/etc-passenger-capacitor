@@ -83,6 +83,10 @@
     var root = (window.ETC_CONFIG && ETC_CONFIG.ROOT_URL) || '/';
     location.href = root + route;
   }
-  AL.consumeLaunchRoute().then(function (r) { if (r && r.route) open(r.route); }).catch(function () {});
+  // only the first page of an app start may consume the route of the tap that started the app
+  if (!sessionStorage.getItem('etc_route_consumed')) {
+    try { sessionStorage.setItem('etc_route_consumed', '1'); } catch (e) {}
+    AL.consumeLaunchRoute().then(function (r) { if (r && r.route) open(r.route); }).catch(function () {});
+  }
   if (AL.addListener) AL.addListener('launchRoute', function (e) { if (e && e.route) open(e.route); });
 })();

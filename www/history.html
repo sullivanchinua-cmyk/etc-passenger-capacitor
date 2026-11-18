@@ -298,7 +298,30 @@ input,textarea,[contenteditable="true"],.selectable,.ref-id,[data-selectable],#r
       y += 10;
       doc.text("etc.enugu.gov · support@etc.ng", 113, y, { align: "center" });
 
-      doc.save(`${r.id}.pdf`);
+      const fname = `${r.id}.pdf`;
+      const EN = window.EtcNative;
+      if (EN && EN.isNative && EN.saveToDownloads) {
+        // the Android WebView cannot "download" a generated file, so hand the bytes to the phone's Downloads folder
+        try {
+          const b64 = doc.output("datauristring").split(",")[1];
+          await EN.saveToDownloads(fname, b64, "application/pdf");
+          showDlToast("Saved to Downloads: " + fname);
+        } catch (e) {
+          showDlToast("Couldn’t save the PDF" + (e && e.message ? " – " + e.message : ""));
+        }
+        return;
+      }
+      doc.save(fname);
+    }
+    function showDlToast(msg) {
+      let t = document.getElementById("dlToast");
+      if (!t) {
+        t = document.createElement("div"); t.id = "dlToast";
+        t.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--sab,0px));z-index:99999;background:#0B0F3A;color:#fff;font:600 14px/1.35 system-ui,sans-serif;padding:12px 18px;border-radius:14px;max-width:86%;text-align:center;box-shadow:0 10px 28px rgba(0,0,0,.3)";
+        document.body.appendChild(t);
+      }
+      t.textContent = msg; t.style.display = "block";
+      clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = "none"; }, 3200);
     }
 
     el.addEventListener("click", (e) => {
