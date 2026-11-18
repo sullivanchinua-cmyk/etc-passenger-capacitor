@@ -36,6 +36,7 @@
 
 <style id="etc-anti-zoom-select">
 html,body{touch-action:manipulation;overscroll-behavior-y:auto;-webkit-text-size-adjust:100%}
+    body{padding-top:env(safe-area-inset-top,0px)} /* keep the top bar below the Android status bar */
 /* allow vertical scroll everywhere */
 #chatMessages,.chat-messages,[data-chat-msgs],.msgs,main,.page,body,html{
   -webkit-overflow-scrolling:touch;

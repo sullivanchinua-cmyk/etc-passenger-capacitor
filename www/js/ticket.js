@@ -589,21 +589,6 @@
     });
   });
 
-  // Someone opened a shared ticket link in a browser on Android: offer to continue in the app
-  (function openInAppBanner() {
-    try {
-      if (window.EtcNative && window.EtcNative.isNative) return;
-      const h = location.hash || "";
-      if (h.indexOf("d=") < 0 || !/Android/i.test(navigator.userAgent)) return;
-      const intent = "intent://ticket" + h + "#Intent;scheme=etcbus;package=enugubustransit.com;S.browser_fallback_url=" + encodeURIComponent(location.href) + ";end";
-      const bar = document.createElement("div");
-      bar.className = "tk-openapp";
-      bar.innerHTML = `<span>Open this ticket in the ETC app</span><a href="${intent}">Open app</a><button type="button" aria-label="Close">×</button>`;
-      bar.querySelector("button").onclick = function () { bar.remove(); };
-      document.body.appendChild(bar);
-    } catch (_) {}
-  })();
-
   (async function init() {
     const q = new URLSearchParams(location.search);
     let id = q.get("id");

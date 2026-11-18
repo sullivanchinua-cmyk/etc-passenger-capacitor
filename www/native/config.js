@@ -33,7 +33,7 @@
     MAX_MSGS_PER_ROOM: 500,
 
     // Turn on if the page header is hidden behind the Android status bar.
-    SAFE_AREA_PADDING: true,
+    SAFE_AREA_PADDING: false, // the home header is fixed directly in css/styles.css instead
 
     // ---- Attach pickers ---------------------------------------------------
     // true : the Document picker asks for "All files access" so it can list

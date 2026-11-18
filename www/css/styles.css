@@ -19,6 +19,15 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* App-wide: keep normal page content from sitting under the Android status bar.
+   (index.html is excluded — its .hdr / .hdr-right / .s-row already add their own
+   env(safe-area-inset-top) directly; stacking this on top of that pushed them down
+   twice and broke the header layout there.) Safe on the web too: env() is 0px
+   on any screen without a notch/status-bar inset, so this is a no-op there. */
+body:not(.home-lite) {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 body {
   font-family: var(--font);
   background: linear-gradient(180deg, #D2D3D6 0%, #DCDDE0 100%);
@@ -198,7 +207,7 @@ body {
    ========================================================= */
 .hdr {
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 20;
   display: flex;
   align-items: center;
@@ -210,7 +219,7 @@ body {
 /* profile + header search: fixed, never move */
 .hdr-right {
   position: fixed;
-  top: 16px;
+  top: calc(16px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -228,7 +237,7 @@ body {
 /* the search row sticks to the top; JS shrinks the pill as it rises */
 .s-row {
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 30;
   display: flex;
   align-items: center;
@@ -271,7 +280,7 @@ body {
 /* chips stick just under the docked search row */
 .chips {
   position: sticky;
-  top: 72px;
+  top: calc(72px + env(safe-area-inset-top, 0px));
   z-index: 25;
   display: flex;
   align-items: center;

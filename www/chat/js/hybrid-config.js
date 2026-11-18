@@ -1067,10 +1067,15 @@ window.etcRunGemini = function (userText) {
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         systemInstruction: { parts: [{ text: system }] },
-        generationConfig: { maxOutputTokens: 500, temperature: 0.85 }
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
+        ],
+        // Gemini 3.x "thinking" tokens count toward this cap; a low cap can leave an empty reply
+        generationConfig: { maxOutputTokens: 2048, temperature: 0.85 }
       })
     })
-    .then(function (r) { return r.json(); })
+    .then(function (r) { window._etcGemStatus = r.status; try { if (typeof showToast === 'function') showToast('Gemini replied (HTTP ' + r.status + ')'); } catch (e) {} return r.json(); })
     .then(function (data) {
       var el = document.getElementById(thinkId);
       if (el) el.remove();
@@ -1083,7 +1088,9 @@ window.etcRunGemini = function (userText) {
         }
       } catch (e) {}
       if (!answer) {
-        answer = '⚠️ Gemini: ' + ((data.error && data.error.message) || 'no reply');
+        answer = '⚠️ Gemini (HTTP ' + (window._etcGemStatus || '?') + '): ' + ((data.error && data.error.message) ||
+          (data.promptFeedback && data.promptFeedback.blockReason) ||
+          (data.candidates && data.candidates[0] && data.candidates[0].finishReason) || 'no reply');
         console.warn('Gemini raw', data);
       }
       // Paint reply
@@ -1099,13 +1106,41 @@ window.etcRunGemini = function (userText) {
         ts: Date.now(),
         reactions: {}
       };
+      var _gToast = function (t, k) { try { if (typeof showToast === 'function') showToast(t, k); } catch (e) {} };
       try {
         var box2 = document.getElementById('chatMessages');
-        if (box2 && typeof renderPublicMsg === 'function') {
-          renderPublicMsg(msg, box2);
+        if (!box2) { _gToast('Gemini: chat list not found', 'error'); }
+        else {
+          try {
+            if (typeof renderPublicMsg === 'function') renderPublicMsg(msg, box2);
+          } catch (eR) {
+            console.error('renderPublicMsg failed for Gemini reply', eR);
+            _gToast('Gemini paint error: ' + (eR && eR.message || eR), 'error');
+          }
+          // If the normal renderer drew nothing (threw / skipped), draw a plain bubble so the reply is never lost
+          if (!document.getElementById('pm_' + msg.id)) {
+            var fb = document.createElement('div');
+            fb.id = 'pm_' + msg.id;
+            fb.setAttribute('data-msgid', msg.id);
+            fb.style.cssText = 'display:flex;align-items:flex-start;gap:10px;padding:8px 12px;margin:6px 0;';
+            var av = document.createElement('div');
+            av.textContent = '🤖';
+            av.style.cssText = 'width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0B0F3A,#1a237e);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0';
+            var col = document.createElement('div');
+            col.style.cssText = 'min-width:0;max-width:85%';
+            var nm = document.createElement('div');
+            nm.textContent = 'Gemini AI';
+            nm.style.cssText = 'font-weight:700;font-size:14px;margin-bottom:4px';
+            var bub = document.createElement('div');
+            bub.textContent = answer;
+            bub.style.cssText = 'background:#1f2937;color:#fff;border-radius:18px;padding:12px 16px;font-size:15px;line-height:1.45;white-space:pre-wrap;word-break:break-word';
+            col.appendChild(nm); col.appendChild(bub);
+            fb.appendChild(av); fb.appendChild(col);
+            box2.appendChild(fb);
+          }
           try { window.scrollTo(0, document.body.scrollHeight); } catch (e) {}
         }
-      } catch (ePaint) { console.error(ePaint); }
+      } catch (ePaint) { console.error(ePaint); _gToast('Gemini paint error: ' + (ePaint && ePaint.message || ePaint), 'error'); }
       // Save once
       try {
         if (window.saveToFirebase) window.saveToFirebase('public_chat', msg).catch(function () {});

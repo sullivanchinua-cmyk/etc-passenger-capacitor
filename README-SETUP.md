@@ -61,7 +61,7 @@ Firestore rule for tokens (collection `etc_rtdb_fcm_tokens`): `allow write: if r
 ## Fixes round 2
 * **Safe area**: `SAFE_AREA_PADDING: true` in `www/native/config.js` (pages no longer sit under the status / navigation bar).
 * **Phone contacts** in the chat attach menu come from the native DeviceFiles plugin (asks for the Contacts permission).
-* **Notification icon**: white bus silhouette (`resources/android/res/drawable/ic_stat_etc.xml`) + full-colour app icon as large icon.
+* **Notification icon**: white bus silhouette (PNG `ic_stat_etc` in `resources/android/res/drawable-*`) + full-colour app icon as large icon.
 * **Receipt**: Copy buttons for the payment ref and the ticket ref.
 * **Ticket links**: `SHARE_BASE_URL` in `www/native/config.js` is the public web address. Links look like `<SHARE_BASE_URL>/ticket.html#d=...`.
   `npm run android:patch` registers that host (App Link) and `etcbus://` in the manifest. Deploy `www/.well-known/assetlinks.json` with the site.

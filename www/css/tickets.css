@@ -148,8 +148,3 @@
 .rc-copy.done { background: #16A96A; border-color: #16A96A; color: #fff; }
 .rc-rows > div:has(.rc-copy) b.mono { margin-left: auto; }
 
-/* shared link opened in a browser: "Open in app" bar */
-.tk-openapp { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 16px; border-radius: 18px; background: #0B0F3A; color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.35); font-size: 13.5px; font-weight: 600; }
-.tk-openapp span { flex: 1; }
-.tk-openapp a { background: #fff; color: #0B0F3A; padding: 9px 14px; border-radius: 12px; font-weight: 800; text-decoration: none; }
-.tk-openapp button { background: none; border: 0; color: #fff; font-size: 22px; line-height: 1; padding: 4px 8px; }

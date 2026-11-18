@@ -114,40 +114,5 @@
     }
   }
 
-  // If the top bar hides under the Android status bar (Android 15+/16 draw edge-to-edge),
-  // set SAFE_AREA_PADDING: true in config.js.
-  if (isNative && (window.ETC_CONFIG || {}).SAFE_AREA_PADDING) {
-    var st = document.createElement('style');
-    st.textContent = 'html body{box-sizing:border-box;padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));' +
-      'padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));' +
-      'padding-left:var(--safe-area-inset-left,env(safe-area-inset-left,0px));' +
-      'padding-right:var(--safe-area-inset-right,env(safe-area-inset-right,0px))}';
-    document.head.appendChild(st);
-  }
-
-  // ---- Deep links: shared ticket links open the app and register the ticket ---------------
-  //   https://<SHARE_BASE_URL host>/ticket.html#d=...   (Android App Link)
-  //   etcbus://ticket#d=...                            (fallback / "Open in app" button)
-  if (isNative) {
-    var dlApp = plugin('App');
-    var openLink = function (url) {
-      if (!url) return;
-      var i = String(url).indexOf('#d=');
-      if (i < 0) return;
-      var root = (window.ETC_CONFIG && window.ETC_CONFIG.ROOT_URL) || '/';
-      location.href = root + 'ticket.html' + String(url).slice(i);
-    };
-    if (dlApp && dlApp.addListener) {
-      dlApp.addListener('appUrlOpen', function (e) { openLink(e && e.url); });
-    }
-    if (dlApp && dlApp.getLaunchUrl) {
-      dlApp.getLaunchUrl().then(function (r) {
-        var u = r && r.url; if (!u) return;
-        try { if (sessionStorage.getItem('etc_launch_url') === u) return; sessionStorage.setItem('etc_launch_url', u); } catch (e) {}
-        openLink(u);
-      }).catch(function () {});
-    }
-  }
-
   window.EtcNative = N;
 })();

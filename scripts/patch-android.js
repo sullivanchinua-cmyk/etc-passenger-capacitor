@@ -56,31 +56,12 @@ if (!xml.includes(fcmIcon)) {
     '    <meta-data android:name="' + fcmIcon + '" android:resource="@drawable/ic_stat_etc" />\n    </application>');
 }
 
-// shared ticket links: https://<SHARE_BASE_URL host>/ticket.html (App Link) and etcbus://ticket
-if (!xml.includes('android:scheme="etcbus"')) {
-  let host = '';
-  try {
-    const cfgJs = fs.readFileSync(path.join(__dirname, '..', 'www', 'native', 'config.js'), 'utf8');
-    const m = /SHARE_BASE_URL:\s*['"]https?:\/\/([^\/'"]+)/.exec(cfgJs);
-    if (m) host = m[1];
-  } catch (e) {}
-  let filters = '        <intent-filter>\n' +
-    '            <action android:name="android.intent.action.VIEW" />\n' +
-    '            <category android:name="android.intent.category.DEFAULT" />\n' +
-    '            <category android:name="android.intent.category.BROWSABLE" />\n' +
-    '            <data android:scheme="etcbus" />\n' +
-    '        </intent-filter>\n';
-  if (host) {
-    filters += '        <intent-filter android:autoVerify="true">\n' +
-      '            <action android:name="android.intent.action.VIEW" />\n' +
-      '            <category android:name="android.intent.category.DEFAULT" />\n' +
-      '            <category android:name="android.intent.category.BROWSABLE" />\n' +
-      '            <data android:scheme="https" android:host="' + host + '" android:pathPrefix="/ticket.html" />\n' +
-      '        </intent-filter>\n';
-  }
-  xml = xml.replace('</activity>', filters + '    </activity>');
-  console.log('Ticket link filters added (' + (host ? 'https://' + host + '/ticket.html + etcbus://' : 'etcbus:// only - SHARE_BASE_URL not found') + ').');
-}
+// NOTE: a direct "tap link -> jump into app" intent-filter was tried here and reverted:
+// added to the launcher activity (default launchMode, not singleTask), it could spawn a
+// second Activity/WebView instance on top of the running one, which matches the open/close
+// flicker reported after buying a ticket. Links still work as plain web links
+// (shareLink() in www/js/tickets.js points at SHARE_BASE_URL); re-add only with
+// android:launchMode="singleTask" and onNewIntent handling, tested on a real device first.
 
 fs.writeFileSync(manifestPath, xml);
 console.log('AndroidManifest.xml patched (' + add.length + ' entries added' + (playStore ? ', Play Store mode' : '') + ').');
@@ -157,25 +138,5 @@ if (fs.existsSync(gs) && fs.existsSync(rootGradle) && fs.existsSync(appGradle)) 
     ag += "\napply plugin: 'com.google.gms.google-services'\n";
     fs.writeFileSync(appGradle, ag);
     console.log('Applied google-services plugin in android/app/build.gradle.');
-  }
-}
-
-
-
-// Ensure debug keystore path is explicit (default passwords already match our keystore)
-const appGradlePath2 = path.join(appDir, 'build.gradle');
-if (fs.existsSync(appGradlePath2)) {
-  let ag = fs.readFileSync(appGradlePath2, 'utf8');
-  if (!ag.includes('ETC_DEBUG_SIGNING')) {
-    ag += `
-// ETC_DEBUG_SIGNING - point debug build at the CI keystore copied to ~/.android/debug.keystore
-android.signingConfigs.debug.storeFile = file(System.properties['user.home'] + '/.android/debug.keystore')
-android.signingConfigs.debug.storePassword = 'android'
-android.signingConfigs.debug.keyAlias = 'androiddebugkey'
-android.signingConfigs.debug.keyPassword = 'android'
-android.buildTypes.debug.signingConfig = android.signingConfigs.debug
-`
-    fs.writeFileSync(appGradlePath2, ag);
-    console.log('Forced debug signingConfig to use project keystore.');
   }
 }

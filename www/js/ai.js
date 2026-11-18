@@ -471,7 +471,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" + GEMINI_KEY;
   const ETC_SYS = "You are ETC Assistant, inside the Enugu Transport Corporation (ETC) passenger app in Enugu, Nigeria. Help passengers with bus routes, terminals, fares (from \u20a6500 depending on route), seats (32-seater CNG city bus, 2x2 layout, 1A/1B priority), luggage, tickets and boarding. Be concise (2-3 sentences) and friendly. If you do not know a live fact (exact fare, departure time, seats left, bus location), say so and point to the route card or booking page instead of guessing. If the passenger wants to book, tell them to say or type \"book me a ticket\".";
   const aiHistory = [];
+  const AI_DEBUG = true;          // TEMP: shows why Gemini failed under the reply. Set false when fixed.
+  let aiLastError = "";
   async function askGeminiText(q) {
+    aiLastError = "";
     aiHistory.push({ role: "user", parts: [{ text: q }] });
     try {
       const r = await fetch(GEMINI_URL, {
@@ -485,12 +488,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const d = await r.json();
       const a = d && d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0].text;
-      if (!a) throw new Error((d && d.error && d.error.message) || "empty");
+      if (!a) throw new Error("HTTP " + r.status + " " + ((d && d.error && d.error.message) || (d && d.candidates && d.candidates[0] && d.candidates[0].finishReason) || "empty"));
       aiHistory.push({ role: "model", parts: [{ text: a }] });
       return a.trim();
     } catch (e) {
       aiHistory.pop();
-      console.warn("ETC AI text error:", e && e.message);
+      aiLastError = (e && e.name ? e.name + ": " : "") + (e && e.message ? e.message : String(e));
+      console.warn("ETC AI text error:", aiLastError);
       return null;
     }
   }
@@ -527,7 +531,10 @@ document.addEventListener("DOMContentLoaded", () => {
     typingRow.remove();
     let answer = null;
     if (!wasVoice) answer = await askGeminiText(text);   // typed only
-    if (!answer) answer = genericReply(text);            // voice + offline fallback
+    if (!answer) {
+      answer = genericReply(text);                       // voice + offline fallback
+      if (AI_DEBUG && !wasVoice) answer += "\n\n[AI debug v22: " + (aiLastError || "no error") + "]";
+    }
     addMsg("bot", answer);
     await speak(answer);
     setMic(null);
