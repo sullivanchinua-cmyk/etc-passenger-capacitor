@@ -276,47 +276,78 @@
       </div>`);
     const el = ui.el, grid = el.querySelector("#lugGrid");
     let size = "M";
-    function paint() {
-      // Bar = all luggage on this bus (others + you). Cap is full trunk size.
-      const mine = lugUsed();
-      const totalCap = trunkCap();
-      const totalUsed = Math.min(totalCap, (remoteTrunkUsed || 0) + mine);
-      const left = Math.max(0, totalCap - totalUsed);
-      grid.innerHTML = window.ETC_LUGGAGE.map((it) => {
-        const qn = st.std[it.id] || 0;
-        return `<div class="lug"><div class="top"><span class="ic">${ICON[it.icon]}</span><div><p class="nm">${it.name}</p><p class="mt">${it.space} space · ${naira(it.space * B.luggageUnitFee)}</p></div></div>
-          <div class="stepper"><button type="button" data-a="-" data-id="${it.id}" ${qn ? "" : "disabled"} aria-label="Remove ${it.name}">${ICON.minus}</button><span class="q">${qn}</span><button type="button" data-a="+" data-id="${it.id}" ${it.space > left ? "disabled" : ""} aria-label="Add ${it.name}">${ICON.plus}</button></div></div>`;
-      }).join("") + `
+
+    // ---- built ONCE: the grid is never torn down on a tap (that rebuild was the flicker) ----
+    grid.innerHTML = window.ETC_LUGGAGE.map((it) => `<div class="lug" data-lug="${it.id}"><div class="top"><span class="ic">${ICON[it.icon]}</span><div><p class="nm">${it.name}</p><p class="mt">${it.space} space · ${naira(it.space * B.luggageUnitFee)}</p></div></div>
+          <div class="stepper"><button type="button" data-a="-" data-id="${it.id}" disabled aria-label="Remove ${it.name}">${ICON.minus}</button><span class="q">0</span><button type="button" data-a="+" data-id="${it.id}" aria-label="Add ${it.name}">${ICON.plus}</button></div></div>`).join("") + `
         <div class="lug custom-add"><div class="top"><span class="ic">${ICON.custom}</span><div><p class="nm">Custom item</p><p class="mt">Anything else — name it and pick a size</p></div></div>
           <input class="text-in" id="cName" style="margin:6px 0 0" type="text" maxlength="24" placeholder="e.g. Generator, Bag of rice" />
           <div class="size-seg">${window.ETC_SIZES.map((s) => `<button type="button" data-size="${s.k}" class="${s.k === size ? "on" : ""}">${s.label} · ${s.space}</button>`).join("")}</div>
           <button type="button" class="ov-btn" id="cAdd" style="height:44px">Add item</button>
-          ${st.custom.length ? `<div class="cust-list">${st.custom.map((c, i) => `<div class="ci"><span>${esc(c.name)}</span><span style="color:#8A8C90;font-weight:600">${c.space} · ${naira(c.space * B.luggageUnitFee)}</span><button type="button" data-rm="${i}" aria-label="Remove ${esc(c.name)}">${ICON.close}</button></div>`).join("")}</div>` : ""}
+          <div class="cust-list" id="custList"></div>
         </div>`;
-      el.querySelector("#trTxt").textContent = totalCap
-        ? `${totalUsed} of ${totalCap} used` + (remoteTrunkUsed ? ` (${remoteTrunkUsed} by other passengers)` : "")
-        : "0 of 0 used";
-      el.querySelector("#trBar").style.width = (totalCap ? Math.min(100, (totalUsed / totalCap) * 100) : 0) + "%";
-      el.querySelector("#trunk").classList.toggle("full", left <= 0);
-      el.querySelector("#lugFull").hidden = left > 0;
-      el.querySelector("#lCalc").textContent = plural(lugItems(), "item");
-      el.querySelector("#lTotal").textContent = naira(lugFee());
-      el.querySelector("#cAdd").disabled = left < 1;
+    const rows = {};                       // id -> { q, minus, plus }
+    grid.querySelectorAll("[data-lug]").forEach((row) => {
+      rows[row.dataset.lug] = { q: row.querySelector(".q"), minus: row.querySelector('[data-a="-"]'), plus: row.querySelector('[data-a="+"]') };
+    });
+    const custList = grid.querySelector("#custList");
+    const refs = {
+      trTxt: el.querySelector("#trTxt"), trBar: el.querySelector("#trBar"), trunk: el.querySelector("#trunk"),
+      full: el.querySelector("#lugFull"), calc: el.querySelector("#lCalc"), total: el.querySelector("#lTotal"), add: grid.querySelector("#cAdd")
+    };
+    const setText = (n, v) => { if (n.textContent !== v) n.textContent = v; };      // touch the DOM only when something really changed
+    const setDis = (n, v) => { if (n.disabled !== v) n.disabled = v; };
+
+    let custKey = null;
+    function paintCustom() {
+      const key = JSON.stringify(st.custom);
+      if (key === custKey) return;
+      custKey = key;
+      custList.innerHTML = st.custom.map((c, i) => `<div class="ci"><span>${esc(c.name)}</span><span style="color:#8A8C90;font-weight:600">${c.space} · ${naira(c.space * B.luggageUnitFee)}</span><button type="button" data-rm="${i}" aria-label="Remove ${esc(c.name)}">${ICON.close}</button></div>`).join("");
     }
+
+    // updates numbers / disabled states IN PLACE - no innerHTML, no re-created nodes, no re-layout of the grid
+    function paint() {
+      const mine = lugUsed();
+      const totalCap = trunkCap();
+      const totalUsed = Math.min(totalCap, (remoteTrunkUsed || 0) + mine);
+      const left = Math.max(0, totalCap - totalUsed);
+      window.ETC_LUGGAGE.forEach((it) => {
+        const r = rows[it.id], qn = st.std[it.id] || 0;
+        setText(r.q, String(qn));
+        setDis(r.minus, !qn);
+        setDis(r.plus, it.space > left);
+      });
+      paintCustom();
+      setText(refs.trTxt, totalCap
+        ? `${totalUsed} of ${totalCap} used` + (remoteTrunkUsed ? ` (${remoteTrunkUsed} by other passengers)` : "")
+        : "0 of 0 used");
+      refs.trBar.style.transform = "scaleX(" + (totalCap ? Math.min(1, totalUsed / totalCap) : 0) + ")";   // compositor-only (was width)
+      refs.trunk.classList.toggle("full", left <= 0);
+      if (refs.full.hidden !== (left > 0)) refs.full.hidden = left > 0;
+      setText(refs.calc, plural(lugItems(), "item"));
+      setText(refs.total, naira(lugFee()));
+      setDis(refs.add, left < 1);
+    }
+    // the booking page behind the overlay refreshes on the next frame, after the overlay has already painted
+    let renderQ = 0;
+    const renderSoon = () => { if (renderQ) return; renderQ = requestAnimationFrame(() => { renderQ = 0; render(); }); };
+
     grid.addEventListener("click", (e) => {
-      const b = e.target.closest("button"); if (!b) return;
+      const b = e.target.closest("button"); if (!b || b.disabled) return;
       if (b.dataset.a) {
         const id = b.dataset.id, sp = stdSpace(id);
         if (b.dataset.a === "+") { if (lugUsed() + sp <= effectiveTrunkCap()) st.std[id] = (st.std[id] || 0) + 1; }
         else st.std[id] = Math.max(0, (st.std[id] || 0) - 1);
-        paint(); render();
+        paint(); renderSoon();
       } else if (b.dataset.size) { size = b.dataset.size; grid.querySelectorAll("[data-size]").forEach((x) => x.classList.toggle("on", x.dataset.size === size)); }
-      else if (b.dataset.rm !== undefined) { st.custom.splice(+b.dataset.rm, 1); paint(); render(); }
+      else if (b.dataset.rm !== undefined) { st.custom.splice(+b.dataset.rm, 1); paint(); renderSoon(); }
       else if (b.id === "cAdd") {
         const sp = window.ETC_SIZES.find((s) => s.k === size).space;
         if (lugUsed() + sp > effectiveTrunkCap()) { UI.toast(remoteTrunkUsed ? "Trunk is full for this bus" : "Not enough trunk space for that size"); return; }
-        const nm = (grid.querySelector("#cName").value || "").trim() || "Custom item";
-        st.custom.push({ name: nm, size, space: sp }); paint(); render();
+        const inp = grid.querySelector("#cName");
+        const nm = (inp.value || "").trim() || "Custom item";
+        st.custom.push({ name: nm, size, space: sp }); inp.value = ""; paint(); renderSoon();
       }
     });
     el.querySelector("#lDone").onclick = ui.close;

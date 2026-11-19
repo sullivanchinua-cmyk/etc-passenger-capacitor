@@ -177,3 +177,33 @@ if (fs.existsSync(gs) && fs.existsSync(rootGradle) && fs.existsSync(appGradle)) 
     console.log('Applied google-services plugin in android/app/build.gradle.');
   }
 }
+
+
+// ---------------------------------------------------------------------------
+// 4) No white flash / white strip: paint the native window + WebView in the app's base colour.
+//    The white bar that showed at the bottom while the keyboard closed was the Activity window background
+//    (white by default) peeking through until the WebView finished resizing. #DCDDE0 = www/js/render-guard.js BG.
+//    Idempotent - safe to run again.
+// ---------------------------------------------------------------------------
+(function () {
+  const BG = '#DCDDE0';
+  const valuesDir = path.join(resDir, 'values');
+  if (!fs.existsSync(valuesDir)) { console.warn('res/values not found - window background NOT patched.'); return; }
+  fs.writeFileSync(path.join(valuesDir, 'etc_colors.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="etc_window_bg">' + BG + '</color>\n</resources>\n');
+  const stylesPath = path.join(valuesDir, 'styles.xml');
+  if (!fs.existsSync(stylesPath)) { console.warn('styles.xml not found - window background NOT patched.'); return; }
+  let st = fs.readFileSync(stylesPath, 'utf8');
+  let n = 0;
+  // every non-launch theme gets the window background (the splash theme keeps its own)
+  st = st.replace(/(<style\s+name="AppTheme(?:\.NoActionBar)?"[^>]*>)([\s\S]*?)(<\/style>)/g, (m, open, body, close) => {
+    if (/name="android:windowBackground"/.test(body)) {
+      n++;
+      return open + body.replace(/(<item\s+name="android:windowBackground">)[^<]*(<\/item>)/, '$1@color/etc_window_bg$2') + close;
+    }
+    n++;
+    return open + '\n        <item name="android:windowBackground">@color/etc_window_bg</item>' + body + close;
+  });
+  fs.writeFileSync(stylesPath, st);
+  console.log('Window background set to ' + BG + ' in ' + n + ' theme(s).');
+})();

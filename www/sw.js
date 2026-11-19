@@ -1,4 +1,4 @@
-/* ETC Passenger PWA / TWA Service Worker  (v10 – full offline)
+/* ETC Passenger PWA / TWA Service Worker  (v11 – full offline, pages served from cache instantly)
  *
  * What works with no connection (after the first online launch):
  *   - the whole app shell: every page, script, stylesheet, photo, icon and the intro sound
@@ -11,7 +11,7 @@
  *
  * Release rule: change CACHE_VERSION whenever any file in PRECACHE changes.
  */
-const CACHE_VERSION = "etc-v10-20261118-spa-views";
+const CACHE_VERSION = "etc-v11-20261119-cached-views";
 const CDN_CACHE = "etc-cdn-v1";
 const TILE_CACHE = "etc-tiles-v1";
 const TILE_MAX = 150;
@@ -58,6 +58,29 @@ const PRECACHE = [
   "js/lib.js",
   "js/safe-area.js",
   "js/spa.js",
+  "js/render-guard.js",
+  "chat/index.html",
+  "chat/pages/chat.html",
+  "chat/pages/chatroom.html",
+  "chat/js/ai-api.js",
+  "chat/js/attach-menu.js",
+  "chat/js/aws4fetch.js",
+  "chat/js/background-audio.js",
+  "chat/js/chat-theme.js",
+  "chat/js/classroom-chat.js",
+  "chat/js/confirm-modal.js",
+  "chat/js/emoji-panel.js",
+  "chat/js/features.js",
+  "chat/js/file-preview.js",
+  "chat/js/firestore-chat-bridge.js",
+  "chat/js/gemini-chat.js",
+  "chat/js/hybrid-config.js",
+  "chat/js/image-viewer.js",
+  "chat/js/main.js",
+  "chat/js/media-viewer.js",
+  "chat/js/offline-cache.js",
+  "chat/js/pickers.js",
+  "chat/js/r2-storage.js",
   "js/map-fix.js",
   "native/deeplink.js",
   "js/machine.js",
@@ -236,11 +259,10 @@ async function handleNavigate(event, url) {
     return res;
   });
   event.waitUntil(net.catch(() => {}));      // keep refreshing the saved copy even after we answered
-  if (!cached) {
-    return net.catch(async () => (await cache.match(abs("offline.html"))) || Response.error());
-  }
-  const slow = new Promise((r) => setTimeout(() => r(cached), 3500));
-  return Promise.race([net.then((res) => (res.ok || res.type === "opaqueredirect" ? res : cached)).catch(() => cached), slow]);
+  // v11: a saved page is shown IMMEDIATELY (it used to wait up to 3.5 s for the network first - that was the delay when
+  // opening chat / any view on a slow connection). The fresh copy is stored for the next open.
+  if (cached) return cached;
+  return net.catch(async () => (await cache.match(abs("offline.html"))) || Response.error());
 }
 
 // Same-origin files: serve the saved copy instantly and refresh it in the background

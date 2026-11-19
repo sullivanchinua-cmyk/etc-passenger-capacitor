@@ -45,9 +45,11 @@ jobs:
             echo "android/ already exists, skipping cap add"
           fi
 
+      # Required for white-strip / white-flash fix (native window background #DCDDE0)
       - name: Patch Android project
         run: npm run android:patch
 
+      # Same as "npm run sync" (postinstall already ran build-offline)
       - name: Sync web files into Android
         run: npx cap sync android
 

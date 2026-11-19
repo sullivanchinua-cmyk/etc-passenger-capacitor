@@ -2,6 +2,7 @@
   "appId": "enugubustransit.com",
   "appName": "Enugu Smart Bus",
   "webDir": "www",
+  "backgroundColor": "#DCDDE0",
   "server": {
     "androidScheme": "https"
   },
@@ -21,5 +22,9 @@
         "alert"
       ]
     }
+  },
+  "android": {
+    "backgroundColor": "#DCDDE0",
+    "allowMixedContent": false
   }
 }

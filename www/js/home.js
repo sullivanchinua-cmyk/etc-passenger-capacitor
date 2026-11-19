@@ -108,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bell.addEventListener("click", () => { location.href = "notifications.html"; });
   paint();
   window.addEventListener("pageshow", paint);
+  window.addEventListener("etc:show", paint);
 });
 
 
